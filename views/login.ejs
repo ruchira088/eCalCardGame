@@ -4,15 +4,14 @@
   <meta charset="UTF-8">
   <title>Login</title>
   <% include templates/header.ejs %>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css">
+  <% include templates/notifications.ejs %>
   <script>
     function submitUserCredentials() {
       submitForm(document.getElementById('loginForm'));
     }
 
     function submitIfEnterPressed(ev) {
-      var keyCode = event.which || event.keyCode;
+      var keyCode = ev.which || ev.keyCode;
 
       if (keyCode == 13) {
         submitUserCredentials();
