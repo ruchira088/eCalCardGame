@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Game</title>
+    <% include templates/header.ejs %>
+    <% include templates/notifications.ejs %>
+</head>
+<body>
+<div id="game" class="container">
+
+    <span id="username" data-userName="<%= player.name %>"></span>
+
+    <h1>Hi <%= player.name %></h1>
+
+    <div id="playerHand">
+        <% for(var i = 0; i < player.cards.length; i++)
+        { var card = player.cards[i]; %>
+        <img draggable="true" <%= Constants.CardValue %>="<%= card.getValue() %>" class="playingCard"
+        src="<%= card.getPicture() %>">
+        <% } %>
+    </div>
+    <input type="button" value="Declare Victory" onclick="declareVictory()">
+
+    <div id="onlinePlayers">
+        <h4>Players</h4>
+        <ul>
+            <% for(var i = 0; i < onlineUsers.length; i++) { %>
+            <li id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></li>
+            <% } %>
+        </ul>
+    </div>
+
+    <div class="cardStack">
+        <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=
+        "pickUpCard(this)"
+             src="/images/deck/backOfCard.png">
+        <span id="drawnCard"></span>
+        <!--<span id="drawnCard"><img  draggable="true" class="playingCard" data-cardSource="drawnPile"-->
+        <!--<%= Constants.CardValue %>="<%= drawnCards.showTopCard().getValue() %>"-->
+        <!--src="<%= drawnCards.showTopCard().getPicture() %>"></span>-->
+    </div>
+
+    <div class="modal fade" id="winningCards" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Winning Cards</h4>
+                </div>
+                <div class="modal-body">
+                </div>
+                <div class="modal-footer">
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+<script>
+    initWebSocket("<%= player.name %>");
+    <% var topCard = drawnCards.showTopCard() %>
+    createDrawnCard(new Card("<%= topCard.suit %>", "<%= topCard.number %>"));
+    var playerCards = document.querySelectorAll("#playerHand img.playingCard");
+    addEventListenersToCards(playerCards);
+    highlightActivePlayer("<%= onlineUsers[0]%>");
+
+
+    //    var drawnCard = document.querySelector("#drawnCard");
+    //    addEventListenersToCard(drawnCard);
+    //    drawnCard.removeEventListener("drop", dropCard);
+
+    //    function createDrawnCard(cardValue) {
+    //        var drawnCardPlaceholder = document.getElementById("drawnCard");
+    //        var drawnCard = drawnCardPlaceholder.querySelector("img");
+    //
+    //        var cardValues = cardValue.split("_");
+    //
+    //        var card = new Card(cardValues[1], cardValues[0]);
+    //
+    //        if (drawnCard) {
+    //            drawnCard.remove();
+    //        }
+    //
+    //        var cardElement = createCardElement(card);
+    //
+    //        function drop(ev) {
+    //            ev.preventDefault();
+    //            var sourceCardValue = ev.dataTransfer.getData("card-value");
+    //            var sourceCard = document.querySelector("[" + Constants.CardValue + "='" + sourceCardValue + "']");
+    //            sourceCard.remove();
+    //
+    //            createDrawnCard(sourceCardValue);
+    //            send({type: Constants.CardDrop, value: sourceCardValue});
+    //        }
+    //
+    //        function createPlaceholder() {
+    //            var cardPlaceholder = document.createElement("img");
+    //            cardPlaceholder.setAttribute("class", "playingCard");
+    //            cardPlaceholder.src = "/images/deck/backOfCard.png";
+    //            drawnCardPlaceholder.appendChild(cardPlaceholder);
+    //            cardPlaceholder.addEventListener("drop", drop);
+    //            cardPlaceholder.addEventListener("dragover", dragOver)
+    //
+    //        }
+    //
+    //        cardElement.removeEventListener("drop", dropCard);
+    //        cardElement.addEventListener("drop", drop);
+    //        cardElement.addEventListener("dragend", function () {
+    //            cardElement.removeEventListener("drop", drop);
+    //            addEventListenersToCard(cardElement);
+    //            createPlaceholder();
+    //        });
+    //
+    //        drawnCardPlaceholder.appendChild(cardElement);
+    //
+    //    }
+    //
+    //
+    //    function addEventListenersToCards(cards)
+    //    {
+    //        for (var i = 0; i < cards.length; i++) {
+    //            addEventListenersToCard(cards[i]);
+    //        }
+    //    }
+
+
+</script>
+</body>
+</html>

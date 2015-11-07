@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css">
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<input type="button" value="Warning" onclick="warning()">
+<input type="button" value="Error" onclick="error()">
+<script>
+    function error() {
+        toastr.options = {
+            "closeButton": false,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "1000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "slideDown",
+            "hideMethod": "fadeOut"
+        };
+
+        toastr["error"]("<h1>It is not your turn</h1>", "Wait for your turn");
+    }
+
+    function warning() {
+        toastr.options = {
+            "closeButton": false,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "1000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "slideDown",
+            "hideMethod": "fadeOut"
+        };
+
+        toastr["warning"]("It is not your turn", "Wait for your turn");
+    }
+</script>
+
+</body>
+</html>

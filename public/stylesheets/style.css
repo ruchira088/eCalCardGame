@@ -1,0 +1,60 @@
+#newUser, #login
+{
+  width: 30%;
+  min-width: 300px;
+  margin: auto;
+}
+
+#game {
+  min-width: 500px;
+  margin: auto;
+}
+
+body
+{
+  background-color: #eee;
+}
+
+#onlinePlayers li[data-active-player='true']
+{
+  color: blue;
+  font-size: 200%;
+}
+
+/*div.cardStack {*/
+  /*margin-top: 10%;*/
+/*}*/
+
+img.playingCard
+{
+  width: 100px;
+  margin: 5px;
+}
+
+.cardStack {
+  position: relative;
+}
+
+.cardStack #drawnCard {
+  position: absolute;
+  right: 0;
+}
+
+h1
+{
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+#newUser img.feedback
+{
+  height: 40px;
+  width: 40px;
+}
+
+.submitBtn
+{
+  background-color: #23527c;
+  margin-top: 50px;
+  color: white;
+}
