@@ -36,9 +36,6 @@
         "pickUpCard(this)"
              src="/images/deck/backOfCard.png">
         <span id="drawnCard"></span>
-        <!--<span id="drawnCard"><img  draggable="true" class="playingCard" data-cardSource="drawnPile"-->
-        <!--<%= Constants.CardValue %>="<%= drawnCards.showTopCard().getValue() %>"-->
-        <!--src="<%= drawnCards.showTopCard().getPicture() %>"></span>-->
     </div>
 
     <div class="modal fade" id="winningCards" role="dialog">
@@ -62,59 +59,78 @@
     initWebSocket("<%= player.name %>");
     <% var topCard = drawnCards.showTopCard() %>
     createDrawnCard(new Card("<%= topCard.suit %>", "<%= topCard.number %>"));
-    var playerCards = document.querySelectorAll("#playerHand img.playingCard");
-    addEventListenersToCards(playerCards);
     highlightActivePlayer("<%= onlineUsers[0]%>");
 
-    function changeCardValue(cardElement, value)
-    {
-        var cardValue = $(cardElement).attr("data-card-value");
-        var cardImage = $(cardElement).attr("src");
-
-        var imagePath = cardImage.substring(0, cardImage.indexOf(cardValue)) + value + ".png";
-
-        $(cardElement).attr("data-card-value", value);
-        $(cardElement).attr("src", imagePath);
-    }
-
     $(document).ready(function()
-    {
-        $("#playerHand .playingCard").draggable(
-                {
-                    containment: "#playerHand"
-                }
-        ).droppable(
-                {
-                    drop: function(event, ui)
-                    {
-                        var sourceCard = event.toElement;
-                        var cardValue = $(sourceCard).attr("data-card-value");
-
-                        changeCardValue(this, cardValue);
-                        $(sourceCard).remove();
-                    },
-                    over: function(event, ui)
-                    {
-                    },
-                    out: function(event, ui)
-                    {
-
-                    },
-                    accept: function(droppedElement)
-                    {
-                        var accept = false;
-
-                        if($(droppedElement).parent()[0] == $("#cardStack")[0])
+            {
+                $("#playerHand .playingCard").draggable(
                         {
-                            accept = true;
+                            containment: "#playerHand"
                         }
-
-                        return accept;
-                    }
-                }
-        );
-    }
+                ).droppable(
+                        {
+                            drop: dropFunction,
+                            over: overFunction,
+                            out: outFunction,
+                            accept: acceptFunction(function(droppedElement)
+                            {
+                                return droppedElement[0] == $("#deckCard")[0] || ($(droppedElement).parent()[0] == $("#drawnCard")[0] && $("#deckCard").length == 0);
+                            })
+                        }
+                );
+            }
     );
+
+//    $(document).ready(function()
+//    {
+//        $("#playerHand .playingCard").draggable(
+//                {
+//                    containment: "#playerHand"
+//                }
+//        ).droppable(
+//                {
+//                    drop: function(event, ui)
+//                    {
+//                        $(this).css({opacity: 1});
+//
+//                        var currentCardValue = $(this).attr("data-card-value");
+//
+//                        send({type: Constants.CardDrop, value: createCard(currentCardValue)});
+//
+//                        var sourceCard = event.toElement;
+//                        var cardValue = $(sourceCard).attr("data-card-value");
+//
+//                        changeCardValue(this, cardValue);
+//                        $(sourceCard).remove();
+//                    },
+//                    over: function(event, ui)
+//                    {
+//                        $(this).css({opacity: 0.5});
+//                    },
+//                    out: function(event, ui)
+//                    {
+//                        $(this).css({opacity: 1});
+//                    },
+//                    accept: function(droppedElement)
+//                    {
+//                        var accept = false;
+//
+//                        if(getCurrentUser() == getUsername())
+//                        {
+//                            var parent = $(droppedElement).parent()[0];
+//
+//                            if(parent == $("#cardStack")[0] || parent == $("#drawnCard")[0])
+//                            {
+//                                accept = true;
+//                            }
+//                        }
+//
+//                        return accept;
+//                    }
+//                }
+//        );
+//    }
+//    );
 
 </script>
 </body>

@@ -34,37 +34,6 @@ function submitForm(form)
     request.send("username=" + username + "&password=" + password + "&verify=true");
 }
 
-function dragEnd(ev)
-{
-    ev.srcElement.removeAttribute("style");
-}
-
-function dragOver(ev)
-{
-    ev.preventDefault();
-}
-
-function dragStart(ev)
-{
-    ev.dataTransfer.setData("card-value", ev.srcElement.getAttribute(Constants.CardValue));
-    ev.srcElement.setAttribute("style", "opacity:0.5;");
-    //ev.srcElement.setAttribute("hidden", true);
-    //console.log("dragStart = " + ev.srcElement.getAttribute("data-card-value"));
-}
-
-function dropCard(ev)
-{
-    ev.preventDefault();
-    var sourceCardValue = ev.dataTransfer.getData("card-value");
-    var sourceCard = document.querySelector("[" + Constants.CardValue + "='" + sourceCardValue + "']");
-    var targetCard = ev.srcElement;
-    console.log(targetCard.className);
-
-    // if(!sourceCard.getAttribute(Constants.CARD_SOURCE) || sourceCard.getAttribute(Constants.CARD_SOURCE) && getCurrentUser() === getUsername)
-    if (sourceCard) {
-        targetCard.parentNode.insertBefore(sourceCard, targetCard);
-    }
-}
 
 /**  Get the username */
 function getUsername()
@@ -84,30 +53,17 @@ function pickUpCard(card)
 
 function showDeckCard(card)
 {
-    var card = createCardElement(new Card(card.suit, card.number));
-    //card.setAttribute(Constants.VisibleDeckCard, "true");
-    //card.removeEventListener("dragover", dragOver);
-    //card.removeEventListener("drop", dropCard);
-    //card.addEventListener("dragend", function () {
-    //    addEventListenersToCard(card);
-    //    card.removeAttribute(Constants.VisibleDeckCard);
-    //});
-
-    var cardDeck = document.getElementById("cardDeck");
-    cardDeck.parentNode.insertBefore(card, cardDeck.nextElementSibling);
-
-    console.log(card);
+    $(createCardElement(new Card(card.suit, card.number)))
+        .attr("id", "deckCard").insertAfter("#cardDeck");
 }
 
 function createCardElement(card)
 {
-    var cardElement = document.createElement("img");
-    cardElement.setAttribute(Constants.CardValue, card.getValue());
-    cardElement.src = card.getPicture();
-    cardElement.setAttribute("class", "playingCard");
-    $(cardElement).draggable();
-
-    return cardElement;
+    return $("<img>").attr({
+        "data-card-value": card.getValue(),
+        src : card.getPicture(),
+        class: "playingCard"
+    }).draggable();
 }
 
 function performAction(message)
@@ -161,7 +117,6 @@ function showWinningCards(value) {
 
     var modalBody = document.querySelector("#winningCards .modal-body");
     modalBody.innerHTML = value.markup;
-    //modalBody.innerHTML = "Hello World";
 
     $('#winningCards').modal('show');
 }
@@ -227,13 +182,6 @@ function initWebSocket(username, message)
 }
 
 
-function addEventListenersToCard(card) {
-    card.addEventListener("dragstart", dragStart);
-    card.addEventListener("drop", dropCard);
-    card.addEventListener("dragend", dragEnd);
-    card.addEventListener("dragover", dragOver);
-}
-
 function declareVictory() {
     send({type: Constants.DeclareVictory, value: document.getElementById('playerHand').innerHTML});
 }
@@ -255,82 +203,81 @@ function isDeckCardVisible() {
     return visibleDeckCard.length == 1;
 }
 
+function dropFunction(event, ui)
+{
+    $(this).css({opacity: 1});
 
+    var currentCardValue = $(this).attr("data-card-value");
+
+    send({type: Constants.CardDrop, value: createCard(currentCardValue)});
+
+    var sourceCard = event.toElement;
+    var cardValue = $(sourceCard).attr("data-card-value");
+
+    changeCardValue(this, cardValue);
+    $(sourceCard).remove();
+}
+
+function overFunction(event, ui)
+{
+    $(this).css({opacity: 0.5});
+}
+
+function outFunction(event, ui)
+{
+    $(this).css({opacity: 1});
+}
+
+function acceptFunction(acceptCondition)
+{
+    return function(droppedElement)
+    {
+        var accept = false;
+
+        if(getCurrentUser() == getUsername())
+        {
+            if(acceptCondition(droppedElement))
+            {
+                accept = true;
+            }
+        }
+
+        return accept;
+    }
+}
 
 function createDrawnCard(card)
 {
-    var drawnCardPlaceholder = document.getElementById("drawnCard");
-    var drawnCard = drawnCardPlaceholder.querySelector("img");
-
-    // TODO
-    if (drawnCard) {
-        drawnCard.remove();
-    }
-
     var cardElement = createCardElement(card);
-
-    function isValidDrop()
-    {
-        var playerCards = document.querySelectorAll("#playerHand img.playingCard");
-        var visibleDeckCard = document.querySelectorAll("[" + Constants.VisibleDeckCard + "]");
-        return (playerCards.length + visibleDeckCard.length) == 10;
-    }
-
-    function drop(ev)
-    {
-        ev.preventDefault();
-
-        if(isValidDrop())
+    $(cardElement).droppable(
         {
-            var sourceCardValue = ev.dataTransfer.getData("card-value");
-            var sourceCard = document.querySelector("[" + Constants.CardValue + "='" + sourceCardValue + "']");
-            sourceCard.remove();
-
-            //createDrawnCard(createCard(sourceCardValue));
-            send({type: Constants.CardDrop, value: createCard(sourceCardValue)});
+            drop: function(event, ui)
+            {
+                var sourceCardValue = $("#deckCard").attr("data-card-value");
+                $(this).remove();
+                $("#deckCard").remove();
+                send({type: Constants.CardDrop, value: createCard(sourceCardValue)});
+            },
+            over: overFunction,
+            out: outFunction,
+            accept: acceptFunction(function(droppedElement)
+            {
+                return droppedElement[0] == $("#deckCard")[0];
+            })
         }
-        else
-        {
-            showWarning("Not a valid move.");
-        }
+    );
+    $("#drawnCard").empty().append(cardElement);
+}
 
-    }
+function changeCardValue(cardElement, value)
+{
+    var cardValue = $(cardElement).attr("data-card-value");
+    var cardImage = $(cardElement).attr("src");
 
-    function createPlaceholder()
-    {
-        var cardPlaceholder = document.createElement("img");
-        cardPlaceholder.setAttribute("class", "playingCard");
-        cardPlaceholder.src = "/images/deck/backOfCard.png";
-        drawnCardPlaceholder.appendChild(cardPlaceholder);
-        cardPlaceholder.addEventListener("drop", drop);
-        cardPlaceholder.addEventListener("dragover", dragOver)
+    var imagePath = cardImage.substring(0, cardImage.indexOf(cardValue)) + value + ".png";
 
-    }
-
-    cardElement.removeEventListener("dragstart", dragStart);
-    cardElement.addEventListener("dragstart", function (ev) {
-        if (getCurrentUser() === getUsername() && !isDeckCardVisible() && document.querySelectorAll("#playerHand img.playingCard").length == 9) {
-            dragStart(ev);
-        }
-    });
-    cardElement.removeEventListener("drop", dropCard);
-    cardElement.addEventListener("drop", drop);
-    cardElement.addEventListener("dragend", function dragEnd() {
-        if (getCurrentUser() === getUsername() && !isDeckCardVisible() && cardElement.parentElement.id != "drawnCard" && document.querySelectorAll("#playerHand img.playingCard").length == 10) {
-            cardElement.removeEventListener("drop", drop);
-            cardElement.removeEventListener("dragend", dragEnd);
-            addEventListenersToCard(cardElement);
-            createPlaceholder();
-            send({type: Constants.CardPickUp, value: ""});
-        } else
-        {
-            showWarning("Not a valid move.");
-        }
-    });
-
-    drawnCardPlaceholder.setAttribute("data-cardSource", Constants.CARD_SOURCE.DRAWN_PILE);
-    drawnCardPlaceholder.appendChild(cardElement);
-
+    $(cardElement).attr("data-card-value", value);
+    $(cardElement).attr("src", imagePath);
 }
 
 function initNotifications() {

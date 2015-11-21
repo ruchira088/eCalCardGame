@@ -73,7 +73,6 @@ function getActionMap()
             if (isCurrentUser(webSocket) && !locked)
             {
                 cardPickUp(value, webSocket);
-                onlineUsers.nextUser();
                 locked = true;
             }
             else
@@ -102,6 +101,7 @@ function getActionMap()
             var card = new Card(value.suit, value.number);
             locked = false;
             console.log(card);
+            onlineUsers.nextUser();
             broadcast({type: Constants.UpdateDrawnCard, value: card});
             broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
         });
