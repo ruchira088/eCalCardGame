@@ -85,13 +85,13 @@ function pickUpCard(card)
 function showDeckCard(card)
 {
     var card = createCardElement(new Card(card.suit, card.number));
-    card.setAttribute(Constants.VisibleDeckCard, "true");
-    card.removeEventListener("dragover", dragOver);
-    card.removeEventListener("drop", dropCard);
-    card.addEventListener("dragend", function () {
-        addEventListenersToCard(card);
-        card.removeAttribute(Constants.VisibleDeckCard);
-    });
+    //card.setAttribute(Constants.VisibleDeckCard, "true");
+    //card.removeEventListener("dragover", dragOver);
+    //card.removeEventListener("drop", dropCard);
+    //card.addEventListener("dragend", function () {
+    //    addEventListenersToCard(card);
+    //    card.removeAttribute(Constants.VisibleDeckCard);
+    //});
 
     var cardDeck = document.getElementById("cardDeck");
     cardDeck.parentNode.insertBefore(card, cardDeck.nextElementSibling);
@@ -105,16 +105,7 @@ function createCardElement(card)
     cardElement.setAttribute(Constants.CardValue, card.getValue());
     cardElement.src = card.getPicture();
     cardElement.setAttribute("class", "playingCard");
-    cardElement.setAttribute("draggable", "true");
-    addEventListenersToCard(cardElement);
-
-    //cardElement.addEventListener("dragstart", dragStart);
-    //cardElement.addEventListener("dragend", function(ev)
-    //{
-    //    dragEnd(ev);
-    //    addEventListenersToCard(cardElement);
-    //    cardElement.setAttribute("class", cardElement.className + " playerHand");
-    //});
+    $(cardElement).draggable();
 
     return cardElement;
 }

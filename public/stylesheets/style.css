@@ -31,11 +31,11 @@ img.playingCard
   margin: 5px;
 }
 
-.cardStack {
+#cardStack {
   position: relative;
 }
 
-.cardStack #drawnCard {
+#cardStack #drawnCard {
   position: absolute;
   right: 0;
 }

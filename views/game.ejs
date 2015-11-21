@@ -31,7 +31,7 @@
         </ul>
     </div>
 
-    <div class="cardStack">
+    <div id="cardStack">
         <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=
         "pickUpCard(this)"
              src="/images/deck/backOfCard.png">
@@ -66,65 +66,55 @@
     addEventListenersToCards(playerCards);
     highlightActivePlayer("<%= onlineUsers[0]%>");
 
+    function changeCardValue(cardElement, value)
+    {
+        var cardValue = $(cardElement).attr("data-card-value");
+        var cardImage = $(cardElement).attr("src");
 
-    //    var drawnCard = document.querySelector("#drawnCard");
-    //    addEventListenersToCard(drawnCard);
-    //    drawnCard.removeEventListener("drop", dropCard);
+        var imagePath = cardImage.substring(0, cardImage.indexOf(cardValue)) + value + ".png";
 
-    //    function createDrawnCard(cardValue) {
-    //        var drawnCardPlaceholder = document.getElementById("drawnCard");
-    //        var drawnCard = drawnCardPlaceholder.querySelector("img");
-    //
-    //        var cardValues = cardValue.split("_");
-    //
-    //        var card = new Card(cardValues[1], cardValues[0]);
-    //
-    //        if (drawnCard) {
-    //            drawnCard.remove();
-    //        }
-    //
-    //        var cardElement = createCardElement(card);
-    //
-    //        function drop(ev) {
-    //            ev.preventDefault();
-    //            var sourceCardValue = ev.dataTransfer.getData("card-value");
-    //            var sourceCard = document.querySelector("[" + Constants.CardValue + "='" + sourceCardValue + "']");
-    //            sourceCard.remove();
-    //
-    //            createDrawnCard(sourceCardValue);
-    //            send({type: Constants.CardDrop, value: sourceCardValue});
-    //        }
-    //
-    //        function createPlaceholder() {
-    //            var cardPlaceholder = document.createElement("img");
-    //            cardPlaceholder.setAttribute("class", "playingCard");
-    //            cardPlaceholder.src = "/images/deck/backOfCard.png";
-    //            drawnCardPlaceholder.appendChild(cardPlaceholder);
-    //            cardPlaceholder.addEventListener("drop", drop);
-    //            cardPlaceholder.addEventListener("dragover", dragOver)
-    //
-    //        }
-    //
-    //        cardElement.removeEventListener("drop", dropCard);
-    //        cardElement.addEventListener("drop", drop);
-    //        cardElement.addEventListener("dragend", function () {
-    //            cardElement.removeEventListener("drop", drop);
-    //            addEventListenersToCard(cardElement);
-    //            createPlaceholder();
-    //        });
-    //
-    //        drawnCardPlaceholder.appendChild(cardElement);
-    //
-    //    }
-    //
-    //
-    //    function addEventListenersToCards(cards)
-    //    {
-    //        for (var i = 0; i < cards.length; i++) {
-    //            addEventListenersToCard(cards[i]);
-    //        }
-    //    }
+        $(cardElement).attr("data-card-value", value);
+        $(cardElement).attr("src", imagePath);
+    }
 
+    $(document).ready(function()
+    {
+        $("#playerHand .playingCard").draggable(
+                {
+                    containment: "#playerHand"
+                }
+        ).droppable(
+                {
+                    drop: function(event, ui)
+                    {
+                        var sourceCard = event.toElement;
+                        var cardValue = $(sourceCard).attr("data-card-value");
+
+                        changeCardValue(this, cardValue);
+                        $(sourceCard).remove();
+                    },
+                    over: function(event, ui)
+                    {
+                    },
+                    out: function(event, ui)
+                    {
+
+                    },
+                    accept: function(droppedElement)
+                    {
+                        var accept = false;
+
+                        if($(droppedElement).parent()[0] == $("#cardStack")[0])
+                        {
+                            accept = true;
+                        }
+
+                        return accept;
+                    }
+                }
+        );
+    }
+    );
 
 </script>
 </body>
