@@ -31,11 +31,12 @@
         </ul>
     </div>
 
-    <div id="cardStack">
-        <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=
-        "pickUpCard(this)"
-             src="/images/deck/backOfCard.png">
-        <span id="drawnCard"></span>
+    <div id="tableArea">
+        <div id="cardStack" class="movableCard">
+            <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=
+                "pickUpCard(this)" src="/images/deck/backOfCard.png">
+        </div>
+        <div id="drawnCard" class="movableCard"></div>
     </div>
 
     <div class="modal fade" id="winningCards" role="dialog">
@@ -63,6 +64,10 @@
 
     $(document).ready(function()
             {
+                $(".movableCard").draggable();
+
+                $("#playerHand").draggable().resizable();
+
                 $("#playerHand .playingCard").draggable(
                         {
                             containment: "#playerHand"

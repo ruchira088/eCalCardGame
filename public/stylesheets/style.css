@@ -5,14 +5,43 @@
   margin: auto;
 }
 
+#cardStack
+{
+  float: left;
+  width: 270px;
+  height: 200px;
+}
+
 #game {
-  min-width: 500px;
+  min-width: 425px;
   margin: auto;
+}
+
+.movableCard
+{
+  border-style: groove;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+#drawnCard
+{
+  position: absolute;
+  right: 0;
 }
 
 body
 {
-  background-color: #eee;
+  background-image: url("/images/blackBackground.jpg");
+}
+
+#playerHand
+{
+  background-image: url("/images/playerHand.png");
+  border-radius: 20px;
+  padding: 20px;
+  border: 5px outset;
+  margin-bottom: 40px;
 }
 
 #onlinePlayers li[data-active-player='true']
@@ -31,19 +60,16 @@ img.playingCard
   margin: 5px;
 }
 
-#cardStack {
+#tableArea
+{
   position: relative;
-}
-
-#cardStack #drawnCard {
-  position: absolute;
-  right: 0;
 }
 
 h1
 {
   margin-top: 40px;
   margin-bottom: 40px;
+  color: white;
 }
 
 #newUser img.feedback
