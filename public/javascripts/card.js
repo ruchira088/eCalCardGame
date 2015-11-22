@@ -123,7 +123,7 @@ function showWinningCards(value) {
 
 function highlightActivePlayer(playerId)
 {
-    var players = document.querySelectorAll("#onlinePlayers li");
+    var players = document.querySelectorAll("#onlinePlayers td");
 
     for(var i = 0; i < players.length; i++)
     {
@@ -138,12 +138,8 @@ function highlightActivePlayer(playerId)
 /** Add a user to the "online user table" */
 function addToOnlineUserTable(loggedInUser)
 {
-    var onlineUsers = document.querySelector("#onlineUsers ul");
-
-    var user = document.createElement("li");
-    user.innerHTML = loggedInUser;
-
-    onlineUsers.appendChild(user);
+    $("#players").append($("<tr></tr>").html($("<td></td>").html(loggedInUser)));
+    showInfo(loggedInUser + " logged in.");
 }
 
 /** Send a message to the web socket server */

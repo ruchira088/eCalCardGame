@@ -11,7 +11,7 @@
 
     <span id="username" data-userName="<%= player.name %>"></span>
 
-    <h1>Hi <%= player.name %></h1>
+    <h1>Hi <%= player.name %>,</h1>
 
     <div id="playerHand">
         <% for(var i = 0; i < player.cards.length; i++)
@@ -22,21 +22,33 @@
     </div>
     <input type="button" value="Declare Victory" onclick="declareVictory()">
 
-    <div id="onlinePlayers">
+    <div id="onlinePlayersPlaceholder" class="movable">
+    <table id="onlinePlayers">
+        <tr>
+            <th>Players</th>
+        </tr>
+        <% for(var i = 0; i < onlineUsers.length; i++) { %>
+        <tr>
+            <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
+        </tr>
+        <% } %>
+    </table>
+    </div>
+    <!--div id="onlinePlayers">
         <h4>Players</h4>
         <ul>
             <% for(var i = 0; i < onlineUsers.length; i++) { %>
             <li id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></li>
             <% } %>
         </ul>
-    </div>
+    </div>-->
 
     <div id="tableArea">
-        <div id="cardStack" class="movableCard">
+        <div id="cardStack" class="movable">
             <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=
                 "pickUpCard(this)" src="/images/deck/backOfCard.png">
         </div>
-        <div id="drawnCard" class="movableCard"></div>
+        <div id="drawnCard" class="movable"></div>
     </div>
 
     <div class="modal fade" id="winningCards" role="dialog">
@@ -64,7 +76,7 @@
 
     $(document).ready(function()
             {
-                $(".movableCard").draggable();
+                $(".movable").draggable();
 
                 $("#playerHand").draggable().resizable();
 

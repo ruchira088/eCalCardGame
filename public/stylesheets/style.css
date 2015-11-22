@@ -5,6 +5,49 @@
   margin: auto;
 }
 
+#startGameBtn
+{
+  position: absolute;
+  bottom: 40%;
+  font-size: 200%;
+  width: 200px;
+}
+
+#players
+{
+  font-size: 200%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#players th
+{
+  color: lightgreen;
+  text-decoration: underline;
+}
+
+#players tr
+{
+  color: lightgray;
+}
+
+.form-group
+{
+  margin-bottom: 25px;
+}
+
+label, #login a
+{
+  color: white;
+  font-size: 125%;
+}
+
+#login a
+{
+  font-style: italic;
+  text-decoration: underline;
+}
+
 #cardStack
 {
   float: left;
@@ -17,8 +60,10 @@
   margin: auto;
 }
 
-.movableCard
+.movable
 {
+  margin-bottom: 20px;
+  margin-top: 20px;
   border-style: groove;
   padding: 20px;
   border-radius: 20px;
@@ -44,10 +89,26 @@ body
   margin-bottom: 40px;
 }
 
-#onlinePlayers li[data-active-player='true']
+#onlinePlayers td[data-active-player='true']
 {
-  color: blue;
+  color: red;
   font-size: 200%;
+}
+
+#onlinePlayers
+{
+  color: white;
+}
+
+#onlinePlayers th
+{
+  font-size: 175%;
+  text-decoration: underline;
+}
+
+#onlinePlayers td
+{
+  font-size: 150%;
 }
 
 /*div.cardStack {*/
@@ -78,9 +139,26 @@ h1
   width: 40px;
 }
 
+#onlinePlayersPlaceholder
+{
+  display: table;
+}
+
 .submitBtn
 {
   background-color: #23527c;
   margin-top: 50px;
   color: white;
+  height: 50px;
+  font-size: 150%;
+}
+
+#leaves
+{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  max-width: 700px;
+  min-width: 250px;
 }

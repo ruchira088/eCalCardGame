@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <title>Home</title>
     <% include templates/header.ejs %>
+    <% include templates/notifications.ejs %>
 </head>
 <body>
 <div class="container">
-    <h1>Hi <%= user %></h1>
+    <h1>Hi <%= user %>,</h1>
 
-    <div id="onlineUsers">
-        <h4>Current Online Users</h4>
-        <ul>
-            <% for (var i = 0; i < onlineUsers.length; i++){ %>
-            <li><%= onlineUsers[i] %> </li>
-            <% } %>
-        </ul>
-    </div>
+    <table id="players">
+        <tr>
+            <th>Online Players</th>
+        </tr>
+        <% for(var i = 0; i < onlineUsers.length; i++) { %>
+        <tr>
+            <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
+        </tr>
+        <% } %>
+    </table>
     <div>
         <form action="/game/" method="POST">
             <input name="user" value="<%= user %>" type="hidden">
-            <input type="submit" value="Start Game">
+            <input id="startGameBtn" type="submit" value="Start Game">
         </form>
     </div>
     <script>
