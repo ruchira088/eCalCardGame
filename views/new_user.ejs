@@ -17,11 +17,15 @@
         </div>
         <div class="form-group">
             <label>Password</label>
-            <input type="password" class="form-control" name="password">
+            <input id="password" onkeyup="confirmPassword($('#confirm')[0], this)" type="password" class="form-control" name="password">
         </div>
         <div class="form-group">
             <label>Confirm Password</label>
-            <input id="confirm" type="password" class="form-control">
+            <input onkeyup="confirmPassword(this, $('#password')[0])" id="confirm" type="password" class="form-control">
+            <div style="position: relative">
+                <div id="passwordNoMatch">Passwords do not match<img id="cross" src="/images/Cross.png"></div>
+                <div id="passwordMatch">Passwords match<img id="tick" src="/images/Tick.png"></div>
+            </div>
         </div>
         <div class="form-group">
             <input onclick="submit(document.getElementById('userForm'))" type="button" class="form-control submitBtn" value="Create User">

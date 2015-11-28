@@ -23,7 +23,6 @@
 #players th
 {
   color: lightgreen;
-  text-decoration: underline;
 }
 
 #players tr
@@ -103,7 +102,6 @@ body
 #onlinePlayers th
 {
   font-size: 175%;
-  text-decoration: underline;
 }
 
 #onlinePlayers td
@@ -147,7 +145,7 @@ h1
 .submitBtn
 {
   background-color: #23527c;
-  margin-top: 50px;
+  margin-top: 70px;
   color: white;
   height: 50px;
   font-size: 150%;
@@ -162,3 +160,36 @@ h1
   max-width: 700px;
   min-width: 250px;
 }
+
+#cross
+{
+  height: 30px;
+  float: right;
+}
+
+#tick
+{
+  height: 20px;
+  margin-left: 10px;
+  float: right;
+}
+
+#passwordNoMatch, #passwordMatch
+{
+  position: absolute;
+  top:0;
+  left: 0;
+  display: none;
+  margin-top: 10px;
+}
+
+#passwordNoMatch
+{
+  color: red;
+}
+
+#passwordMatch
+{
+  color: green;
+}
+

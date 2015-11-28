@@ -320,6 +320,29 @@ function showWarning(message) {
     toastr["warning"](message);
 }
 
+function confirmPassword(confirm, password)
+{
+    $("#passwordMatch").hide();
+    $("#passwordNoMatch").hide();
+
+    var passwordValue = password.value;
+    var confirmValue = confirm.value;
+
+    if(passwordValue.length != 0 && confirmValue.length != 0)
+    {
+        if(confirmValue === passwordValue)
+        {
+            $("#passwordMatch").show();
+        } else
+        {
+            $("#passwordNoMatch").show();
+        }
+    }
+
+    console.log(confirm.value);
+    console.log(password.value);
+}
+
 function addEventListenersToCards(cards)
 {
     for (var i = 0; i < cards.length; i++) {

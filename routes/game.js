@@ -139,7 +139,10 @@ function cardPickUp(value, webSocket) {
 onlineUsers.putIfAbsent = function (value) {
     if (this.indexOf(value) === -1) {
         this.push(value);
+        return true;
     }
+
+    return false;
 };
 
 onlineUsers.currentPosition = 0;
@@ -189,15 +192,17 @@ router.post("/home", function (request, response)
             var user = request.body.username;
             var verify = request.body.verify;
 
-            onlineUsers.putIfAbsent(user);
-
             if(verify)
             {
                 response.send("success");
             }
             else
             {
-                broadcast({type: Constants.LoggedInUser, value: user});
+                if(onlineUsers.putIfAbsent(user))
+                {
+                    broadcast({type: Constants.LoggedInUser, value: user});
+                }
+
                 response.render("home", {user: user, onlineUsers: onlineUsers});
             }
         }
