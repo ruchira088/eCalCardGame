@@ -21,10 +21,16 @@
         <% } %>
     </table>
     <div>
+        <% if(!game)
+        {%>
         <form action="/game/" method="POST">
             <input name="user" value="<%= user %>" type="hidden">
             <input id="startGameBtn" type="submit" value="Start Game">
         </form>
+        <%} else
+        {%>
+            <div>A game is in progress</div>
+        <%}%>
     </div>
     <script>
         initWebSocket("<%= user %>");

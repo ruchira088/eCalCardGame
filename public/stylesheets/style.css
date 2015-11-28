@@ -174,7 +174,7 @@ h1
   float: right;
 }
 
-#passwordNoMatch, #passwordMatch
+#passwordNoMatch, #passwordMatch, #usernameTaken, #usernameAvailable
 {
   position: absolute;
   top:0;
@@ -183,13 +183,17 @@ h1
   margin-top: 10px;
 }
 
-#passwordNoMatch
+#passwordNoMatch, #usernameTaken
 {
   color: red;
 }
 
-#passwordMatch
+#passwordMatch, #usernameAvailable
 {
   color: green;
 }
 
+#userForm #username
+{
+  margin-bottom: 50px;
+}

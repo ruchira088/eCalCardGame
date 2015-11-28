@@ -13,8 +13,14 @@ router.post("/", function(request, response)
     response.send("new_user");
 });
 
-router.post("/hello", function(request, response){
-    response.send("Hello");
+router.get("/usernameCheck", function(request, response)
+{
+    var user = {username: request.query.name};
+
+    database.login(user, function(exists)
+    {
+        response.send(!exists);
+    });
 });
 
 module.exports = router;

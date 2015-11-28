@@ -203,7 +203,7 @@ router.post("/home", function (request, response)
                     broadcast({type: Constants.LoggedInUser, value: user});
                 }
 
-                response.render("home", {user: user, onlineUsers: onlineUsers});
+                response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
             }
         }
         else

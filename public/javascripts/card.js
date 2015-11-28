@@ -320,27 +320,68 @@ function showWarning(message) {
     toastr["warning"](message);
 }
 
-function confirmPassword(confirm, password)
+function confirmPassword()
 {
+    var validated = false;
+
     $("#passwordMatch").hide();
     $("#passwordNoMatch").hide();
 
-    var passwordValue = password.value;
-    var confirmValue = confirm.value;
+    var passwordValue = $('#password')[0].value;
+    var confirmValue = $('#confirm')[0].value;
 
     if(passwordValue.length != 0 && confirmValue.length != 0)
     {
         if(confirmValue === passwordValue)
         {
             $("#passwordMatch").show();
+            validated = true;
         } else
         {
             $("#passwordNoMatch").show();
         }
     }
 
-    console.log(confirm.value);
-    console.log(password.value);
+    return validated;
+
+}
+
+function checkUsername()
+{
+    var validUsername = false;
+    var username = $("#username input")[0].value;
+
+    $("#usernameTaken").hide();
+    $("#usernameAvailable").hide();
+
+    if(username.length != 0)
+    {
+        $.get("new_user/usernameCheck", {name: username}, function(usernameAvailable)
+        {
+            if(usernameAvailable == true)
+            {
+                $("#usernameAvailable").show();
+                validUsername = true;
+            } else
+            {
+                $("#usernameTaken").show();
+            }
+        });
+    }
+
+    return validUsername;
+}
+
+function validateAndSubmit(form)
+{
+    if(checkUsername() && confirmPassword())
+    {
+        form.submit();
+    } else
+    {
+        showError("Please complete the form.")
+    }
+
 }
 
 function addEventListenersToCards(cards)
