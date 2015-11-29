@@ -320,10 +320,8 @@ function showWarning(message) {
     toastr["warning"](message);
 }
 
-function confirmPassword()
+function confirmPassword(success, fail)
 {
-    var validated = false;
-
     $("#passwordMatch").hide();
     $("#passwordNoMatch").hide();
 
@@ -335,20 +333,24 @@ function confirmPassword()
         if(confirmValue === passwordValue)
         {
             $("#passwordMatch").show();
-            validated = true;
+            if(success)
+            {
+                success();
+            }
         } else
         {
             $("#passwordNoMatch").show();
+            if(fail)
+            {
+                fail();
+            }
         }
     }
 
-    return validated;
-
 }
 
-function checkUsername()
+function checkUsername(success, fail)
 {
-    var validUsername = false;
     var username = $("#username input")[0].value;
 
     $("#usernameTaken").hide();
@@ -361,27 +363,37 @@ function checkUsername()
             if(usernameAvailable == true)
             {
                 $("#usernameAvailable").show();
-                validUsername = true;
+                if(success)
+                {
+                    success();
+                }
             } else
             {
                 $("#usernameTaken").show();
+
+                if(fail)
+                {
+                    fail();
+                }
             }
         });
     }
-
-    return validUsername;
 }
 
 function validateAndSubmit(form)
 {
-    if(checkUsername() && confirmPassword())
+    checkUsername(function()
     {
-        form.submit();
-    } else
-    {
-        showError("Please complete the form.")
-    }
+        confirmPassword(function()
+        {
+            form.submit();
+        }, showUserFormError);
+    }, showUserFormError);
 
+    function showUserFormError()
+    {
+        showError("Please complete the form.");
+    }
 }
 
 function addEventListenersToCards(cards)

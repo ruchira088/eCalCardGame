@@ -7,9 +7,9 @@
     <% include templates/notifications.ejs %>
 </head>
 <body>
-<div class="container">
-    <h1>Hi <%= user %>,</h1>
-
+<div id="homepage" class="container">
+    <h1 id="greeting">Hi <%= user %>,</h1>
+    <a href="/game/logout" id="logout">Logout</a>
     <table id="players">
         <tr>
             <th>Online Players</th>

@@ -14,9 +14,23 @@ var game;
 var webSocketMap = new Map();
 var actionMap;
 
+var onlineUsersInfo = new Map();
 var onlineUsers = [];
 myObjects.extendArray(onlineUsers);
 
+
+onlineUsersInfo.getCookieInformation = function(user)
+{
+    var info = null;
+    var value = this.get(user);
+
+    if(typeof value != "undefined")
+    {
+        info = user + "&" + value.token;
+    }
+
+    return info;
+};
 wss.on("connection", function (ws)
 {
     ws.sendValue = function (value) {
@@ -136,9 +150,12 @@ function cardPickUp(value, webSocket) {
     webSocket.sendValue({type: event, value: card});
 }
 
-onlineUsers.putIfAbsent = function (value) {
-    if (this.indexOf(value) === -1) {
+onlineUsers.putIfAbsent = function (value)
+{
+    if (this.indexOf(value) === -1)
+    {
         this.push(value);
+        onlineUsersInfo.set(value, {token: Math.random().toString(36).slice(2)});
         return true;
     }
 
@@ -164,9 +181,37 @@ onlineUsers.getCurrentUser = function () {
 };
 
 
-router.get("/login", function (request, response) {
-    response.render("login");
+router.get("/login", function (request, response)
+{
+    if(typeof request.cookies.userInfo != "undefined")
+    {
+        response.redirect("home");
+
+        /*var user = getUserInfoFromCookie(userInfo);
+
+        var info = onlineUsersInfo.get(user.username);
+
+        if(typeof info != "undefined" && info.token === user.token)
+        {
+            response.render("home", {user: user.username, onlineUsers: onlineUsers, game: game});
+        }
+        else
+        {
+            response.render("login");
+        }*/
+    }
+    else
+    {
+        response.render("login");
+    }
 });
+
+function getUserInfoFromCookie(value)
+{
+    var values = value.split("&");
+
+    return {username: values[0], token: values[1]};
+}
 
 router.post("/", function (request, response) {
     var user = request.body.user;
@@ -183,6 +228,50 @@ router.post("/", function (request, response) {
 
     response.render("game", {player: player, drawnCards: drawnCards, onlineUsers: onlineUsers});
 });
+
+function delegateRequest(request, response, success, fail)
+{
+    var userInfo = request.cookies.userInfo;
+
+    if(typeof userInfo != "undefined")
+    {
+        var user = getUserInfoFromCookie(userInfo);
+
+        var info = onlineUsersInfo.get(user.username);
+
+        if(typeof info != "undefined" && info.token === user.token)
+        {
+            success(user.username, request, response);
+        }
+        else
+        {
+            fail(user.username, request, response);
+        }
+    }
+    else
+    {
+        fail(user.username, request, response);
+    }
+}
+
+router.get("/home", function (request, response)
+{
+    delegateRequest(request, response, function success(username)
+    {
+        response.render("home", {user: username, onlineUsers: onlineUsers, game: game});
+    }, clearCookiesAndGotoLoginPage);
+});
+
+router.get("/logout", function (request, response)
+{
+    delegateRequest(request, response, clearCookiesAndGotoLoginPage, clearCookiesAndGotoLoginPage)
+});
+
+function clearCookiesAndGotoLoginPage(username, request, response)
+{
+    response.clearCookie("userInfo");
+    response.redirect("login");
+}
 
 router.post("/home", function (request, response)
 {
@@ -203,7 +292,9 @@ router.post("/home", function (request, response)
                     broadcast({type: Constants.LoggedInUser, value: user});
                 }
 
-                response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
+                response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
+                response.redirect("home");
+                //response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
             }
         }
         else
