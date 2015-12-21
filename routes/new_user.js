@@ -1,5 +1,4 @@
 var express = require('express');
-var database = require('../database');
 var requestDispatcher = require('../requestDispatcher');
 var router = express.Router();
 
@@ -9,9 +8,10 @@ router.get("/", function(request, response){
 
 router.post("/", function(request, response)
 {
-    database.createUser(request.body);
-
-    response.send("new_user");
+    requestDispatcher.createUser(request.body, function()
+    {
+        response.send("new_user");
+    });
 });
 
 router.get("/usernameCheck", function(request, response)
@@ -23,10 +23,6 @@ router.get("/usernameCheck", function(request, response)
         response.send(available);
     });
 
-    //database.login(user, function(exists)
-    //{
-    //    response.send(!exists);
-    //});
 });
 
 module.exports = router;

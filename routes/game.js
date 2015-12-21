@@ -1,6 +1,5 @@
 var express = require('express');
 var router = express.Router();
-var database = require('../database');
 var requestDispatcher = require('../requestDispatcher');
 var WebSocketServer = require('ws').Server;
 var myObjects = require('../myObjects');

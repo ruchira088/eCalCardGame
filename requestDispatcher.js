@@ -2,6 +2,7 @@ var http = require("http");
 
 var HOSTNAME = "localhost";
 var PORT = 8081;
+var DB_COLLECTION_PATH = "/Rest_DB/database/CardGame/users";
 
 function checkUsernameAvailability(user, callback)
 {
@@ -9,10 +10,10 @@ function checkUsernameAvailability(user, callback)
     {
         hostname: HOSTNAME,
         port: PORT,
-        path: "/Rest_DB/database/CardGame/users?username=" + user.username
+        path: DB_COLLECTION_PATH + "?username=" + user.username
     };
 
-    sendRequest(options, function(response)
+    sendRequest(options, null, function(response)
     {
         callback(response.count == 0);
     });
@@ -24,17 +25,33 @@ function loginUser(user, callback)
     {
         hostname: HOSTNAME,
         port: PORT,
-        path: "/Rest_DB/database/CardGame/users?username=" + user.username + "&password=" + user.password
+        path: DB_COLLECTION_PATH + "?username=" + user.username + "&password=" + user.password
     };
 
-    sendRequest(options, function(response)
+    sendRequest(options, null, function(response)
     {
         callback(response.count == 1);
     });
 }
 
+function createUser(user, callback)
+{
+    var options =
+    {
+        hostname: HOSTNAME,
+        port: PORT,
+        path: DB_COLLECTION_PATH,
+        method: "POST"
+    }
 
-function sendRequest(options, callback)
+    sendRequest(options, user, function(data)
+    {
+        callback(data.result == "success");
+    });
+}
+
+
+function sendRequest(options, submitData, callback)
 {
     var request = http.request(options, function(response)
     {
@@ -48,17 +65,33 @@ function sendRequest(options, callback)
         });
     });
 
+    if(submitData)
+    {
+        request.write(JSON.stringify(submitData));
+    }
+
     request.end();
 }
 
-//checkUsernameAvailability("ab", function(data)
+//checkUsernameAvailability({username: "b"}, function(data)
 //{
 //    console.log(data);
-//    console.log(data.count == 0);
 //});
+
+//createUser(
+//    {
+//        name: "Hello",
+//        game: "World"
+//    }, function(result)
+//    {
+//        console.log(result);
+//    });
+
+
 
 module.exports =
 {
     checkUsernameAvailability : checkUsernameAvailability,
-    loginUser : loginUser
+    loginUser : loginUser,
+    createUser : createUser
 };
