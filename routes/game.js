@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var database = require('../database');
+var requestDispatcher = require('../requestDispatcher');
 var WebSocketServer = require('ws').Server;
 var myObjects = require('../myObjects');
 
@@ -304,7 +305,7 @@ router.post("/home", function (request, response)
     };
 
     var user = {username: request.body.username, password: request.body.password};
-    database.login(user, next);
+    requestDispatcher.loginUser(user, next);
 });
 
 //router.post("/play", function (request, response)
