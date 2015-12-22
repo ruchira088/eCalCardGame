@@ -20,6 +20,11 @@
   margin-right: auto;
 }
 
+#login img
+{
+  width: 100%;
+}
+
 #players th
 {
   color: lightgreen;

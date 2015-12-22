@@ -1,4 +1,5 @@
 var http = require("http");
+var https = require("https");
 
 var HOSTNAME = "localhost";
 var PORT = 8081;
@@ -16,6 +17,21 @@ function checkUsernameAvailability(user, callback)
     sendRequest(options, null, function(response)
     {
         callback(response.count == 0);
+    });
+}
+
+function doUserExistByFacebookId(user, callback)
+{
+    var options =
+    {
+        hostname: HOSTNAME,
+        port: PORT,
+        path: DB_COLLECTION_PATH + "?facebookId=" + user.facebookId
+    };
+
+    sendRequest(options, null, function(response)
+    {
+        callback(response.count == 1);
     });
 }
 
@@ -42,7 +58,7 @@ function createUser(user, callback)
         port: PORT,
         path: DB_COLLECTION_PATH,
         method: "POST"
-    }
+    };
 
     sendRequest(options, user, function(data)
     {
@@ -50,10 +66,28 @@ function createUser(user, callback)
     });
 }
 
-
-function sendRequest(options, submitData, callback)
+function getFacebookInfo(accessToken, callback)
 {
-    var request = http.request(options, function(response)
+    var options =
+    {
+        hostname: "graph.facebook.com",
+        path: "/v2.5/me?access_token=" + accessToken + "&fields=id,name,email,picture"
+    };
+
+    sendRequest(options, null, function(data)
+    {
+        callback(data);
+    }, https);
+}
+
+function sendRequest(options, submitData, callback, protocol)
+{
+    if(!protocol)
+    {
+        protocol = http;
+    }
+
+    var request = protocol.request(options, function(response)
     {
         console.log(response.statusCode);
         response.setEncoding('utf8');
@@ -93,5 +127,7 @@ module.exports =
 {
     checkUsernameAvailability : checkUsernameAvailability,
     loginUser : loginUser,
-    createUser : createUser
+    createUser : createUser,
+    getFacebookInfo : getFacebookInfo,
+    doUserExistByFacebookId : doUserExistByFacebookId
 };

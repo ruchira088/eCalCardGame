@@ -2,6 +2,7 @@ var g_actionMap;
 
 var g_webSocket;
 
+// TODO: Check web socket
 
 function verifyAndSubmit(form)
 {

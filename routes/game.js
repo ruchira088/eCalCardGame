@@ -273,8 +273,41 @@ function clearCookiesAndGotoLoginPage(username, request, response)
     response.redirect("login");
 }
 
+function facebookLogin(accessToken, callback)
+{
+    requestDispatcher.getFacebookInfo(accessToken, function(data)
+    {
+        console.log(data.id);
+        var user = {facebookId : data.id};
+        requestDispatcher.doUserExistByFacebookId(user, function(exist)
+        {
+            var username = data.name;
+           if(!exist)
+           {
+               user.username = username;
+               user.email = data.email;
+
+               requestDispatcher.createUser(user, function(success)
+               {
+                   console.log(success);
+                   if(success)
+                   {
+                       callback(username);
+                   }
+               });
+           } else
+           {
+                console.log("User already exists.");
+               callback(username);
+           }
+        });
+    });
+}
+
 router.post("/home", function (request, response)
 {
+    var accessToken = request.body.token;
+
     var next = function (success) {
         if (success)
         {
@@ -287,14 +320,16 @@ router.post("/home", function (request, response)
             }
             else
             {
-                if(onlineUsers.putIfAbsent(user))
-                {
-                    broadcast({type: Constants.LoggedInUser, value: user});
-                }
-
-                response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
+                logUser(user);
                 response.redirect("home");
-                //response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
+                //if(onlineUsers.putIfAbsent(user))
+                //{
+                //    broadcast({type: Constants.LoggedInUser, value: user});
+                //}
+                //
+                //response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
+                //response.redirect("home");
+                ////response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
             }
         }
         else
@@ -303,8 +338,28 @@ router.post("/home", function (request, response)
         }
     };
 
-    var user = {username: request.body.username, password: request.body.password};
-    requestDispatcher.loginUser(user, next);
+    if(accessToken)
+    {
+        facebookLogin(accessToken, function(user)
+        {
+            logUser(user);
+            response.send("success");
+        });
+    } else
+    {
+        var user = {username: request.body.username, password: request.body.password};
+        requestDispatcher.loginUser(user, next);
+    }
+
+    function logUser(user)
+    {
+        if(onlineUsers.putIfAbsent(user))
+        {
+            broadcast({type: Constants.LoggedInUser, value: user});
+        }
+
+        response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
+    }
 });
 
 //router.post("/play", function (request, response)
