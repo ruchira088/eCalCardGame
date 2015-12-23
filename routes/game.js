@@ -150,6 +150,17 @@ function cardPickUp(value, webSocket) {
     webSocket.sendValue({type: event, value: card});
 }
 
+onlineUsers.remove = function(user)
+{
+    var index = onlineUsers.indexOf(user);
+
+    if(index >= 0)
+    {
+        onlineUsers.splice(index, 1);
+    }
+
+};
+
 onlineUsers.putIfAbsent = function (value)
 {
     if (this.indexOf(value) === -1)
@@ -259,16 +270,17 @@ router.get("/home", function (request, response)
     delegateRequest(request, response, function success(username)
     {
         response.render("home", {user: username, onlineUsers: onlineUsers, game: game});
-    }, clearCookiesAndGotoLoginPage);
+    }, logoutUser);
 });
 
 router.get("/logout", function (request, response)
 {
-    delegateRequest(request, response, clearCookiesAndGotoLoginPage, clearCookiesAndGotoLoginPage)
+    delegateRequest(request, response, logoutUser, logoutUser)
 });
 
-function clearCookiesAndGotoLoginPage(username, request, response)
+function logoutUser(username, request, response)
 {
+    onlineUsers.remove(username);
     response.clearCookie("userInfo");
     response.redirect("login");
 }
