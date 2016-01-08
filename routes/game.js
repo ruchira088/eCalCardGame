@@ -114,7 +114,20 @@ function getActionMap()
         {
             var card = new Card(value.suit, value.number);
             locked = false;
-            console.log(card);
+            game.getPlayer(webSocket.username).removeCard(card);
+
+            var playerCards = game.getPlayer(webSocket.username).showCards();
+            requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+            {
+                if(outcome.result)
+                {
+                    webSocket.sendValue({type: Constants.Information, value: "You WON"});
+                } else
+                {
+                    webSocket.sendValue({type: Constants.Information, value: "Still Going"});
+                }
+                console.log(JSON.stringify(outcome));
+            });
             onlineUsers.nextUser();
             broadcast({type: Constants.UpdateDrawnCard, value: card});
             broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
@@ -147,6 +160,7 @@ function cardPickUp(value, webSocket) {
         event = Constants.DrawnCardPickUp;
     }
 
+    game.getPlayer(webSocket.username).cards.push(card);
     webSocket.sendValue({type: event, value: card});
 }
 

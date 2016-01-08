@@ -20,6 +20,18 @@ function checkUsernameAvailability(user, callback)
     });
 }
 
+function hasWinningCards(cards, callback)
+{
+    var options = {
+        hostname: "localhost",
+        port: 3001,
+        method: "POST",
+        headers: {"Content-Type": "application/json"}
+    };
+
+    sendRequest(options, cards, callback);
+}
+
 function doUserExistByFacebookId(user, callback)
 {
     var options =
@@ -93,8 +105,8 @@ function sendRequest(options, submitData, callback, protocol)
         response.setEncoding('utf8');
         response.on("data", function(data)
         {
+            //console.log(data);
             var jsonData = JSON.parse(data);
-            console.log(jsonData);
             callback(jsonData);
         });
     });
@@ -129,5 +141,6 @@ module.exports =
     loginUser : loginUser,
     createUser : createUser,
     getFacebookInfo : getFacebookInfo,
+    hasWinningCards : hasWinningCards,
     doUserExistByFacebookId : doUserExistByFacebookId
 };

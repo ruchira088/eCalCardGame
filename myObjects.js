@@ -85,6 +85,22 @@ var Player = function (name) {
 
     this.cards = [];
 
+    this.removeCard = function(removalCard)
+    {
+      this.cards = this.cards.filter(function(card)
+      {
+          return !removalCard.equals(card);
+      });
+    };
+
+    this.showCards = function()
+    {
+        return this.cards.map(function(card)
+        {
+            return card.getValue();
+        });
+    };
+
     this.fetchCard = function (deck) {
         this.cards.push(deck.pickUpCard());
     }

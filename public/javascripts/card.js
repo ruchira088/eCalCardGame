@@ -102,7 +102,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.Information, function (value)
         {
-            console.log(value)
+            console.log(value);
+            showInfo(value);
         });
     }
 

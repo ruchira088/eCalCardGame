@@ -8,6 +8,12 @@ var Card = function (suit, number) {
 
     this.getPicture = function () {
         return "/images/deck/" + this.getValue() + ".png";
+    };
+
+    this.equals = function(card)
+    {
+      return card.suit.toLowerCase() == this.suit.toLowerCase() &&
+          card.number.toLowerCase() == this.number.toLowerCase();
     }
 };
 
@@ -28,7 +34,7 @@ var Constants =
     DeclareVictory: "DeclareVictory",
     VictoryAnnouncement: "VictoryAnnouncement",
     CardSource: "data-card-source",
-    WaitForTurn: "WaitForTurn",
+    WaitForTurn: "WaitForTurn"
 };
 
 if (typeof module != "undefined") {
