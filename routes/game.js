@@ -43,7 +43,7 @@ wss.on("connection", function (ws)
          var message = JSON.parse(jsonMessage);
 
          var action = getActionMap().get(message.type);
-         action(message.value, ws);
+         action(message.value, ws, message);
 
          //ws.username = message;
          //webSocketMap.set(ws.username, ws);
@@ -110,24 +110,35 @@ function getActionMap()
             }, webSocket);
         });
 
-        actionMap.set(Constants.CardDrop, function (value, webSocket)
+        actionMap.set(Constants.CardDrop, function (value, webSocket, message)
         {
             var card = new Card(value.suit, value.number);
+            var srcCard = message.srcCard;
             locked = false;
-            game.getPlayer(webSocket.username).removeCard(card);
 
-            var playerCards = game.getPlayer(webSocket.username).showCards();
-            requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+            if(srcCard)
             {
-                if(outcome.result)
+                var player = game.getPlayer(webSocket.username);
+                player.cards.push(new Card(srcCard.suit, srcCard.number));
+                player.removeCard(card);
+
+                var playerCards = game.getPlayer(webSocket.username).showCards();
+                requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
                 {
-                    webSocket.sendValue({type: Constants.Information, value: "You WON"});
-                } else
-                {
-                    webSocket.sendValue({type: Constants.Information, value: "Still Going"});
-                }
-                console.log(JSON.stringify(outcome));
-            });
+                    if(outcome.result)
+                    {
+                        webSocket.sendValue({type: Constants.Information, value: "You WON"});
+                    } else
+                    {
+                        webSocket.sendValue({type: Constants.Information, value: "Still Going"});
+                    }
+                    console.log(JSON.stringify(outcome));
+                });
+            }
+            //console.log("Removing card " + JSON.stringify(card, null, 2));
+            //game.getPlayer(webSocket.username).removeCard(card);
+
+
             onlineUsers.nextUser();
             broadcast({type: Constants.UpdateDrawnCard, value: card});
             broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
@@ -159,8 +170,9 @@ function cardPickUp(value, webSocket) {
         card = game.getDrawnCards().getTopCard();
         event = Constants.DrawnCardPickUp;
     }
-
-    game.getPlayer(webSocket.username).cards.push(card);
+    //
+    //console.log("Pushing card " + JSON.stringify(card, null, 2) + " to " + webSocket.username);
+    //game.getPlayer(webSocket.username).cards.push(card);
     webSocket.sendValue({type: event, value: card});
 }
 

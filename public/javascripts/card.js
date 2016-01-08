@@ -207,13 +207,13 @@ function dropFunction(event, ui)
 
     var currentCardValue = $(this).attr("data-card-value");
 
-    send({type: Constants.CardDrop, value: createCard(currentCardValue)});
-
     var sourceCard = event.toElement;
     var cardValue = $(sourceCard).attr("data-card-value");
 
     changeCardValue(this, cardValue);
     $(sourceCard).remove();
+
+    send({type: Constants.CardDrop, value: createCard(currentCardValue), srcCard: createCard(cardValue)});
 }
 
 function overFunction(event, ui)
