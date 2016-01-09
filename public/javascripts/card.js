@@ -100,6 +100,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.VictoryAnnouncement, showWinningCards);
 
+        g_actionMap.set(Constants.Victory, victoryDialog);
+
         g_actionMap.set(Constants.Information, function (value)
         {
             console.log(value);
@@ -111,17 +113,135 @@ function performAction(message)
     action(message.value);
 }
 
-function showWinningCards(value) {
-    var header = value.winner + " is announcing victory";
-
-    var modalHeader = document.querySelector("#winningCards .modal-header");
-    modalHeader.innerHTML = header;
-
-    var modalBody = document.querySelector("#winningCards .modal-body");
-    modalBody.innerHTML = value.markup;
-
+function victoryDialog(value)
+{
+    $("#winningCards .modal-header").html($("<span id='winnerHeader'>WINNER</span>"));
+    $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("Congratulations you WON the game.")).append(getWinningSets(value.cardSets));
     $('#winningCards').modal('show');
 }
+function showWinningCards(value)
+{
+    $("#winningCards .modal-header").html($("<div id='winnerHeader'></div>").html(value.winner + " has WON"));
+    $("#winningCards .modal-body").append(getWinningSets(value.cardSets));
+    $('#winningCards').modal('show');
+}
+
+//function showWinningCards(value)
+//{
+//    var header = "<div id='winnerHeader'>" + value.winner + " has WON</div>";
+//
+//    var modalHeader = document.querySelector("#winningCards .modal-header");
+//    modalHeader.innerHTML = header;
+//
+//
+//    var winningCardsMarkup = value.cardSets.reduce(function(markup, cardSet)
+//    {
+//        var setNumber = value.cardSets.indexOf(cardSet) + 1;
+//        var setCardsId = "setCards_" + setNumber;
+//
+//        var setMarkup = cardSet.reduce(function(cardSetMarkup, card)
+//        {
+//            var playingCard = new Card(card.suit, card.value);
+//            var cardMarkup = new Image();
+//            cardMarkup.src = playingCard.getPicture();
+//            cardMarkup.className = "playingCard";
+//
+//            cardSetMarkup.querySelector("#" + setCardsId).appendChild(cardMarkup);
+//            //cardSetMarkup.appendChild(cardMarkup);
+//
+//            return cardSetMarkup;
+//        }, (function()
+//        {
+//            var cardSetMarkup = document.createElement("div");
+//            cardSetMarkup.className = "cardSet";
+//            cardSetMarkup.id = "cardSet_" + setNumber;
+//
+//            var setLabel = document.createElement("span");
+//            setLabel.className = "setLabel";
+//            setLabel.innerHTML = "Set " + setNumber;
+//
+//            cardSetMarkup.appendChild(setLabel);
+//
+//            var cards = document.createElement("span");
+//            cards.id = setCardsId;
+//            cards.className = "setCards";
+//
+//            cardSetMarkup.appendChild(cards);
+//
+//            return cardSetMarkup;
+//        })());
+//
+//        markup.appendChild(setMarkup);
+//
+//        return markup;
+//    }, (function()
+//    {
+//        var winningCardsMarkup = document.createElement("div");
+//        winningCardsMarkup.id = "Winning_Cards";
+//
+//        return winningCardsMarkup;
+//    })());
+//
+//    console.log(winningCardsMarkup);
+//
+//    var modalBody = document.querySelector("#winningCards .modal-body");
+//    modalBody.appendChild(winningCardsMarkup);
+//    //modalBody.innerHTML = value.markup;
+//
+//    $('#winningCards').modal('show');
+//}
+
+function getWinningSets(cardSets)
+{
+    return cardSets.reduce(function(markup, cardSet)
+    {
+        var setNumber = cardSets.indexOf(cardSet) + 1;
+        var setCardsId = "setCards_" + setNumber;
+
+        var setMarkup = cardSet.reduce(function(cardSetMarkup, card)
+        {
+            var playingCard = new Card(card.suit, card.value);
+            var cardMarkup = new Image();
+            cardMarkup.src = playingCard.getPicture();
+            cardMarkup.className = "playingCard";
+
+            cardSetMarkup.querySelector("#" + setCardsId).appendChild(cardMarkup);
+            //cardSetMarkup.appendChild(cardMarkup);
+
+            return cardSetMarkup;
+        }, (function()
+        {
+            var cardSetMarkup = document.createElement("div");
+            cardSetMarkup.className = "cardSet";
+            cardSetMarkup.id = "cardSet_" + setNumber;
+
+            var setLabel = document.createElement("span");
+            setLabel.className = "setLabel";
+            setLabel.innerHTML = "Set " + setNumber;
+
+            cardSetMarkup.appendChild(setLabel);
+
+            var cards = document.createElement("span");
+            cards.id = setCardsId;
+            cards.className = "setCards";
+
+            cardSetMarkup.appendChild(cards);
+
+            return cardSetMarkup;
+        })());
+
+        markup.appendChild(setMarkup);
+
+        return markup;
+    }, (function()
+    {
+        var winningCardsMarkup = document.createElement("div");
+        winningCardsMarkup.id = "winningCards";
+
+        return winningCardsMarkup;
+    })());
+}
+
 
 function highlightActivePlayer(playerId)
 {

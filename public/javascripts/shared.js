@@ -32,6 +32,7 @@ var Constants =
     ActiveUser: "ActiveUser",
     VisibleDeckCard: "data-visible-deck-card",
     DeclareVictory: "DeclareVictory",
+    Victory: "Victory",
     VictoryAnnouncement: "VictoryAnnouncement",
     CardSource: "data-card-source",
     WaitForTurn: "WaitForTurn"

@@ -127,7 +127,10 @@ function getActionMap()
                 {
                     if(outcome.result)
                     {
-                        webSocket.sendValue({type: Constants.Information, value: "You WON"});
+                        webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                        sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
+                        //broadcast({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                        // webSocket.sendValue({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
                     } else
                     {
                         webSocket.sendValue({type: Constants.Information, value: "Still Going"});

@@ -20,7 +20,6 @@
         src="<%= card.getPicture() %>">
         <% } %>
     </div>
-    <input type="button" value="Declare Victory" onclick="declareVictory()">
 
     <div id="onlinePlayersPlaceholder" class="movable">
     <table id="onlinePlayers">
@@ -34,14 +33,6 @@
         <% } %>
     </table>
     </div>
-    <!--div id="onlinePlayers">
-        <h4>Players</h4>
-        <ul>
-            <% for(var i = 0; i < onlineUsers.length; i++) { %>
-            <li id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></li>
-            <% } %>
-        </ul>
-    </div>-->
 
     <div id="tableArea">
         <div id="cardStack" class="movable">
