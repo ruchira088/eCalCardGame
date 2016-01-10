@@ -2,8 +2,6 @@ var g_actionMap;
 
 var g_webSocket;
 
-// TODO: Check web socket
-
 function verifyAndSubmit(form)
 {
     submitForm(form);
@@ -259,7 +257,7 @@ function highlightActivePlayer(playerId)
         player.removeAttribute("data-active-player");
     }
 
-    var activePlayer = document.querySelector("#onlinePlayers #" + playerId);
+    var activePlayer = document.querySelector("#onlinePlayers #" + playerId.replace(" ", ""));
     activePlayer.setAttribute("data-active-player", "true");
 }
 /** Add a user to the "online user table" */

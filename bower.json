@@ -1,0 +1,24 @@
+{
+  "name": "eCalCardGame",
+  "description": "",
+  "main": "",
+  "authors": [
+    "Ruchira (Richie) Jayasekara <ruchira088@gmail.com>"
+  ],
+  "license": "MIT",
+  "moduleType": [],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.2.0",
+    "jquery-ui": "~1.11.4",
+    "bootstrap": "~3.3.6",
+    "toastr": "~2.1.2"
+  }
+}

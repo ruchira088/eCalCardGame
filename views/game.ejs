@@ -9,7 +9,7 @@
 <body>
 <div id="game" class="container">
 
-    <span id="username" data-userName="<%= player.name %>"></span>
+    <span id="username" data-userName="<%= player.name.replace(" ", "") %>"></span>
 
     <h1>Hi <%= player.name %>,</h1>
 
@@ -28,7 +28,7 @@
         </tr>
         <% for(var i = 0; i < onlineUsers.length; i++) { %>
         <tr>
-            <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
+            <td id="<%= onlineUsers[i].replace(" ", "") %>" class="player"><%= onlineUsers[i] %></td>
         </tr>
         <% } %>
     </table>
