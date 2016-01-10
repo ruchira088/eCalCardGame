@@ -52,6 +52,9 @@
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
+                    <form id="endGameFrm" action="/game/home" method="post">
+                        <button id="playAgainBtn" type="submit" name="<%= Constants.Action %>" value="<%= Constants.PlayAgain %>">OK</button>
+                    </form>
                 </div>
             </div>
 
@@ -88,58 +91,6 @@
                 );
             }
     );
-
-//    $(document).ready(function()
-//    {
-//        $("#playerHand .playingCard").draggable(
-//                {
-//                    containment: "#playerHand"
-//                }
-//        ).droppable(
-//                {
-//                    drop: function(event, ui)
-//                    {
-//                        $(this).css({opacity: 1});
-//
-//                        var currentCardValue = $(this).attr("data-card-value");
-//
-//                        send({type: Constants.CardDrop, value: createCard(currentCardValue)});
-//
-//                        var sourceCard = event.toElement;
-//                        var cardValue = $(sourceCard).attr("data-card-value");
-//
-//                        changeCardValue(this, cardValue);
-//                        $(sourceCard).remove();
-//                    },
-//                    over: function(event, ui)
-//                    {
-//                        $(this).css({opacity: 0.5});
-//                    },
-//                    out: function(event, ui)
-//                    {
-//                        $(this).css({opacity: 1});
-//                    },
-//                    accept: function(droppedElement)
-//                    {
-//                        var accept = false;
-//
-//                        if(getCurrentUser() == getUsername())
-//                        {
-//                            var parent = $(droppedElement).parent()[0];
-//
-//                            if(parent == $("#cardStack")[0] || parent == $("#drawnCard")[0])
-//                            {
-//                                accept = true;
-//                            }
-//                        }
-//
-//                        return accept;
-//                    }
-//                }
-//        );
-//    }
-//    );
-
 </script>
 </body>
 </html>

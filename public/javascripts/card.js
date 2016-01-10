@@ -126,6 +126,11 @@ function showWinningCards(value)
     $('#winningCards').modal('show');
 }
 
+function endGameOptions()
+{
+
+}
+
 //function showWinningCards(value)
 //{
 //    var header = "<div id='winnerHeader'>" + value.winner + " has WON</div>";

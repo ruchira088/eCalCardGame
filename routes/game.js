@@ -345,8 +345,25 @@ function facebookLogin(accessToken, callback)
     });
 }
 
+router.post("/home", function(request, response, next)
+{
+    if(request.body[Constants.Action] == Constants.PlayAgain)
+    {
+        if(game)
+        {
+            game = null;
+        }
+
+        response.redirect("home");
+    } else
+    {
+        next();
+    }
+});
+
 router.post("/home", function (request, response)
 {
+    console.log("Got here 2");
     var accessToken = request.body.token;
 
     var next = function (success) {

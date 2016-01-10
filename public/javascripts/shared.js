@@ -35,7 +35,9 @@ var Constants =
     Victory: "Victory",
     VictoryAnnouncement: "VictoryAnnouncement",
     CardSource: "data-card-source",
-    WaitForTurn: "WaitForTurn"
+    WaitForTurn: "WaitForTurn",
+    Action: "action",
+    PlayAgain: "playAgain"
 };
 
 if (typeof module != "undefined") {
