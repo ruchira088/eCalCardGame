@@ -37,7 +37,8 @@ var Constants =
     CardSource: "data-card-source",
     WaitForTurn: "WaitForTurn",
     Action: "action",
-    PlayAgain: "playAgain"
+    PlayAgain: "playAgain",
+    WEB_SOCKET_SERVER_PORT: 8080
 };
 
 if (typeof module != "undefined") {

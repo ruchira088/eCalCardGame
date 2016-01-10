@@ -8,7 +8,7 @@ var Constants = require('../public/javascripts/shared').Constants;
 
 var Game = myObjects.CardGame;
 var Card = myObjects.Card;
-var wss = new WebSocketServer({port: 8080});
+var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
 var game;
 
 var webSocketMap = new Map();

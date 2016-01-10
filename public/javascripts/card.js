@@ -285,7 +285,7 @@ function send(message)
 /** Initialize the web socket */
 function initWebSocket(username, message)
 {
-    g_webSocket = new WebSocket("ws://localhost:8080");
+    g_webSocket = new WebSocket("ws://" + location.hostname + ":" + Constants.WEB_SOCKET_SERVER_PORT);
 
     g_webSocket.onopen = function ()
     {
