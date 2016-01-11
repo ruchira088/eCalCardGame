@@ -103,11 +103,25 @@ function getActionMap()
             console.log(value);
         });
 
-        actionMap.set(Constants.DeclareVictory, function (value, webSocket) {
-            sendToOthers({
-                type: Constants.VictoryAnnouncement,
-                value: {winner: webSocket.username, markup: value}
-            }, webSocket);
+        actionMap.set(Constants.DeclareVictory, function (value, webSocket) 
+        {
+            var playerCards = game.getPlayer(webSocket.username).showCards();
+
+             requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+                {
+                    if(outcome.result)
+                    {
+                        webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                        sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
+                    } else
+                    {
+                        
+                        webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
+                        sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}});
+                    }
+
+                    console.log(JSON.stringify(outcome));
+                });
         });
 
         actionMap.set(Constants.CardDrop, function (value, webSocket, message)

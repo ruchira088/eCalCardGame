@@ -119,22 +119,6 @@ function sendRequest(options, submitData, callback, protocol)
     request.end();
 }
 
-//checkUsernameAvailability({username: "b"}, function(data)
-//{
-//    console.log(data);
-//});
-
-//createUser(
-//    {
-//        name: "Hello",
-//        game: "World"
-//    }, function(result)
-//    {
-//        console.log(result);
-//    });
-
-
-
 module.exports =
 {
     checkUsernameAvailability : checkUsernameAvailability,

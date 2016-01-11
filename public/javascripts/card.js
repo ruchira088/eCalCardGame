@@ -33,6 +33,11 @@ function submitForm(form)
     request.send("username=" + username + "&password=" + password + "&verify=true");
 }
 
+function declareVictory() 
+{
+    send({type: Constants.DeclareVictory, value: ""});
+}
+
 
 /**  Get the username */
 function getUsername()
@@ -96,6 +101,13 @@ function performAction(message)
             console.log(value)
         });
 
+        g_actionMap.set(Constants.FalseVictoryAnnouncement, function(value)
+            {
+                console.log(value.player + " LOST.");
+            });
+
+        g_actionMap.set(Constants.FalseVictoryDeclaration, falseVictory);
+
         g_actionMap.set(Constants.VictoryAnnouncement, showWinningCards);
 
         g_actionMap.set(Constants.Victory, victoryDialog);
@@ -124,10 +136,38 @@ function showWinningCards(value)
     $('#winningCards').modal('show');
 }
 
-function endGameOptions()
+function falseVictory(cards)
 {
+    $("#winningCards .modal-header").html($("<span id='loserHeader'>LOSER</span>"));
+    $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("You LOST the game.")).append((function()
+    {
+        return cards.reduce(function(losingCardsMarkup, card)
+        {
+            var cardValue = card.split("_");
+            var playingCard = new Card(cardValue[1], cardValue[0]);
+            var cardMarkup = new Image();
+            cardMarkup.src = playingCard.getPicture();
+            cardMarkup.className = "playingCard";
 
+            losingCardsMarkup.appendChild(cardMarkup);
+
+            return losingCardsMarkup;
+
+        }, (function(){
+
+            var losingCards = document.createElement("div");
+            losingCards.id = "losingCards";
+
+            return losingCards;
+
+        })());
+
+    })());
+
+    $('#winningCards').modal('show');
 }
+
+
 
 //function showWinningCards(value)
 //{
@@ -303,9 +343,6 @@ function initWebSocket(username, message)
 }
 
 
-function declareVictory() {
-    send({type: Constants.DeclareVictory, value: document.getElementById('playerHand').innerHTML});
-}
 
 function createCard(value)
 {

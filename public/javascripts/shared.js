@@ -32,12 +32,14 @@ var Constants =
     ActiveUser: "ActiveUser",
     VisibleDeckCard: "data-visible-deck-card",
     DeclareVictory: "DeclareVictory",
+    FalseVictoryDeclaration: "FalseVictoryDeclaration",
     Victory: "Victory",
     VictoryAnnouncement: "VictoryAnnouncement",
     CardSource: "data-card-source",
     WaitForTurn: "WaitForTurn",
     Action: "action",
     PlayAgain: "playAgain",
+    FalseVictoryAnnoucement: "FalseVictoryAnnoucement",
     WEB_SOCKET_SERVER_PORT: 8080
 };
 
