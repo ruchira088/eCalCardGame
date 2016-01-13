@@ -124,6 +124,12 @@ function getActionMap()
                 });
         });
 
+        actionMap.set(Constants.ChatMessage, function(value, webSocket)
+        {
+            var message = {sender: webSocket.username, message: value};
+            broadcast({type: Constants.ChatMessage, value: message});
+        });
+
         actionMap.set(Constants.CardDrop, function (value, webSocket, message)
         {
             var card = new Card(value.suit, value.number);
@@ -377,7 +383,6 @@ router.post("/home", function(request, response, next)
 
 router.post("/home", function (request, response)
 {
-    console.log("Got here 2");
     var accessToken = request.body.token;
 
     var next = function (success) {

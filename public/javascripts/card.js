@@ -101,16 +101,13 @@ function performAction(message)
             console.log(value)
         });
 
-        g_actionMap.set(Constants.FalseVictoryAnnouncement, function(value)
-            {
-                console.log(value.player + " LOST.");
-            });
-
         g_actionMap.set(Constants.FalseVictoryDeclaration, falseVictory);
 
         g_actionMap.set(Constants.VictoryAnnouncement, showWinningCards);
 
         g_actionMap.set(Constants.Victory, victoryDialog);
+
+        g_actionMap.set(Constants.ChatMessage, receivedMessage);
 
         g_actionMap.set(Constants.Information, function (value)
         {
@@ -121,6 +118,18 @@ function performAction(message)
 
     var action = g_actionMap.get(message.type);
     action(message.value);
+}
+
+function receivedMessage(message)
+{
+    var sender = message.sender;
+    var messageContents = message.message;
+
+    pushToChatConsole($("<span class='message'></span>").append($("<span class='sender'></span>").html(sender)).
+    append($("<span class='seperator'></span>").html(" : ")).
+    append($("<span class='messageContents'></span>").html(messageContents)));
+
+   // pushToChatConsole(sender + " : " + messageContents);
 }
 
 function victoryDialog(value)
@@ -556,6 +565,18 @@ function validateAndSubmit(form)
     {
         showError("Please complete the form.");
     }
+}
+
+function sendChatMessage(message)
+{
+    send({type: Constants.ChatMessage, value: message});
+}
+
+function pushToChatConsole(value)
+{
+    $("#chatConsole").append(value).scrollTop($("#chatConsole").prop("scrollHeight"));
+    //$("#chatConsole").append($("<div class='chatConsoleEntry'></div>").text(value)).
+    //    scrollTop($("#chatConsole").prop("scrollHeight"));
 }
 
 function addEventListenersToCards(cards)

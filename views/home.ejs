@@ -20,6 +20,9 @@
         </tr>
         <% } %>
     </table>
+    <div id="chatArea">
+        <% include templates/chatroom.ejs %>
+    </div>
     <div>
         <% if(!game)
         {%>
@@ -34,6 +37,10 @@
     </div>
     <script>
         initWebSocket("<%= user %>");
+        $(document).ready(function()
+        {
+            $("#chatArea").draggable();
+        });
     </script>
 </div>
 </body>

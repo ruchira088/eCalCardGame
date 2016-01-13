@@ -13,6 +13,41 @@
   width: 200px;
 }
 
+#chatArea
+{
+  position: relative;
+  float: right;
+}
+
+#chatRoom
+{
+  display: inline-block;
+}
+
+#chatRoom div
+{
+  min-width: 30vw;
+  margin: 10px;
+}
+
+#chatConsole
+{
+  overflow: scroll;
+  height: 30vh;
+  background-color: white;
+}
+
+#chatUserInput
+{
+  height: 5vh;
+}
+
+#chatUserInput textarea
+{
+  width: 100%;
+  height: 100%;
+}
+
 #players
 {
   font-size: 200%;

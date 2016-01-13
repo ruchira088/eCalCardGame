@@ -40,6 +40,7 @@ var Constants =
     Action: "action",
     PlayAgain: "playAgain",
     FalseVictoryAnnoucement: "FalseVictoryAnnoucement",
+    ChatMessage: "ChatMessage",
     WEB_SOCKET_SERVER_PORT: 8080
 };
 
