@@ -6,6 +6,8 @@ var myObjects = require('../myObjects');
 
 var Constants = require('../public/javascripts/shared').Constants;
 
+const AUTO_WIN = false;
+
 var Game = myObjects.CardGame;
 var Card = myObjects.Card;
 var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
@@ -142,21 +144,27 @@ function getActionMap()
                 player.cards.push(new Card(srcCard.suit, srcCard.number));
                 player.removeCard(card);
 
-                var playerCards = game.getPlayer(webSocket.username).showCards();
-                requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+                if(AUTO_WIN)
                 {
-                    if(outcome.result)
-                    {
-                        webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-                        sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
-                        //broadcast({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-                        // webSocket.sendValue({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-                    } else
-                    {
-                        webSocket.sendValue({type: Constants.Information, value: "Still Going"});
-                    }
-                    console.log(JSON.stringify(outcome));
-                });
+                    var playerCards = game.getPlayer(webSocket.username).showCards();
+                    requestDispatcher.hasWinningCards({cards: playerCards}, function (outcome) {
+                        if (outcome.result) {
+                            webSocket.sendValue({
+                                type: Constants.Victory,
+                                value: {winner: webSocket.username, cardSets: outcome.cardSets}
+                            });
+                            sendToOthers({
+                                type: Constants.VictoryAnnouncement,
+                                value: {winner: webSocket.username, cardSets: outcome.cardSets}
+                            }, webSocket);
+                            //broadcast({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                            // webSocket.sendValue({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                        } else {
+                            webSocket.sendValue({type: Constants.Information, value: "Still Going"});
+                        }
+                        console.log(JSON.stringify(outcome));
+                    });
+                }
             }
             //console.log("Removing card " + JSON.stringify(card, null, 2));
             //game.getPlayer(webSocket.username).removeCard(card);

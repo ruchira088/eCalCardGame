@@ -39,7 +39,7 @@ var Constants =
     WaitForTurn: "WaitForTurn",
     Action: "action",
     PlayAgain: "playAgain",
-    FalseVictoryAnnoucement: "FalseVictoryAnnoucement",
+    FalseVictoryAnnouncement: "FalseVictoryAnnouncement",
     ChatMessage: "ChatMessage",
     WEB_SOCKET_SERVER_PORT: 8080
 };

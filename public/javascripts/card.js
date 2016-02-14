@@ -103,6 +103,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.FalseVictoryDeclaration, falseVictory);
 
+        g_actionMap.set(Constants.FalseVictoryAnnouncement, opponentFalseVictoryAnnouncement);
+
         g_actionMap.set(Constants.VictoryAnnouncement, showWinningCards);
 
         g_actionMap.set(Constants.Victory, victoryDialog);
@@ -118,6 +120,11 @@ function performAction(message)
 
     var action = g_actionMap.get(message.type);
     action(message.value);
+}
+
+function opponentFalseVictoryAnnouncement(message)
+{
+    console.log(message.player + " falsely announced victory");
 }
 
 function receivedMessage(message)
