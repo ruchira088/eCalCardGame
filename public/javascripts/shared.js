@@ -41,6 +41,7 @@ var Constants =
     PlayAgain: "playAgain",
     FalseVictoryAnnouncement: "FalseVictoryAnnouncement",
     ChatMessage: "ChatMessage",
+    UserLoggedOut: "UserLoggedOut",
     WEB_SOCKET_SERVER_PORT: 8080
 };
 

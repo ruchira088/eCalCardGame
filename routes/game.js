@@ -54,9 +54,9 @@ wss.on("connection", function (ws)
          //ws.send(count.toString());
      });
 
-    ws.on("close", function () {
+    ws.on("close", function ()
+    {
         webSocketMap.delete(ws.username);
-        console.log(ws.username);
     });
 
 });
@@ -119,7 +119,7 @@ function getActionMap()
                     {
                         
                         webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
-                        sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}});
+                        sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
                     }
 
                     console.log(JSON.stringify(outcome));
@@ -318,7 +318,7 @@ function delegateRequest(request, response, success, fail)
     }
     else
     {
-        fail(user.username, request, response);
+        fail(null, request, response);
     }
 }
 
@@ -338,6 +338,7 @@ router.get("/logout", function (request, response)
 function logoutUser(username, request, response)
 {
     onlineUsers.remove(username);
+    sendToOthers({type: Constants.UserLoggedOut, value: {loggedOutUser: username}}, webSocketMap.get(username));
     response.clearCookie("userInfo");
     response.redirect("login");
 }

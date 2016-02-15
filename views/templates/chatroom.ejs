@@ -3,7 +3,9 @@
     </div>
     <div id="chatUserInput">
         <textarea></textarea>
+        <button>Send</button>
     </div>
+
     <script>
         $(document).ready(function()
         {
@@ -11,10 +13,21 @@
             {
                 if(event.keyCode == 13)
                 {
-                    sendChatMessage($(this).val());
-                    $(this).val("");
+                    sendMessage();
                 }
             });
+
+            $("#chatUserInput button").on("click", function()
+            {
+                sendMessage();
+            });
+
+            function sendMessage()
+            {
+                var textArea = $("#chatUserInput textarea");
+                sendChatMessage(textArea.val())
+                textArea.val("");
+             }
         });
     </script>
 </div>

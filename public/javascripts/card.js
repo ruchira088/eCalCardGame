@@ -111,6 +111,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.ChatMessage, receivedMessage);
 
+        g_actionMap.set(Constants.UserLoggedOut, userLoggedOut);
+
         g_actionMap.set(Constants.Information, function (value)
         {
             console.log(value);
@@ -125,6 +127,18 @@ function performAction(message)
 function opponentFalseVictoryAnnouncement(message)
 {
     console.log(message.player + " falsely announced victory");
+}
+
+function userLoggedOut(message)
+{
+    showInfo(message.loggedOutUser + " has logged out.");
+    removeUserFromOnlineTableMarkup(message.loggedOutUser);
+}
+
+function removeUserFromOnlineTableMarkup(username)
+{
+    console.log("Removing " + username);
+    $("table #" + username).parent().remove();
 }
 
 function receivedMessage(message)
@@ -319,7 +333,7 @@ function highlightActivePlayer(playerId)
 /** Add a user to the "online user table" */
 function addToOnlineUserTable(loggedInUser)
 {
-    $("#players").append($("<tr></tr>").html($("<td></td>").html(loggedInUser)));
+    $("#players").append($("<tr></tr>").html($("<td id='"+ loggedInUser+"' class='player'></td>").html(loggedInUser)));
     showInfo(loggedInUser + " logged in.");
 }
 
