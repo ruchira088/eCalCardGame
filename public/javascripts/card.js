@@ -35,7 +35,7 @@ function submitForm(form)
 
 function declareVictory() 
 {
-    send({type: Constants.DeclareVictory, value: ""});
+    send(Message(Constants.DeclareVictory));
 }
 
 
@@ -400,7 +400,13 @@ function createCard(value)
     return new Card(values[1], values[0]);
 }
 
-function getCurrentUser() {
+function getCurrentUser()
+{
+    if(getGameType() === Constants.SinglePlayer)
+    {
+        return getUsername();
+    }
+
     return document.querySelector("[data-active-player]").id;
 }
 
@@ -410,7 +416,7 @@ function isDeckCardVisible() {
     return visibleDeckCard.length == 1;
 }
 
-function dropFunction(event, ui)
+function dropFunction(event)
 {
     $(this).css({opacity: 1});
 
@@ -422,7 +428,11 @@ function dropFunction(event, ui)
     changeCardValue(this, cardValue);
     $(sourceCard).remove();
 
-    send({type: Constants.CardDrop, value: createCard(currentCardValue), srcCard: createCard(cardValue)});
+    var message = Message(Constants.CardDrop);
+    message.value[Constants.OtherCard] = createCard(cardValue);
+    message.value[Constants.NewDrawnCard] = createCard(currentCardValue);
+
+    send(message);
 }
 
 function overFunction(event, ui)
@@ -463,7 +473,9 @@ function createDrawnCard(card)
                 var sourceCardValue = $("#deckCard").attr("data-card-value");
                 $(this).remove();
                 $("#deckCard").remove();
-                send({type: Constants.CardDrop, value: createCard(sourceCardValue)});
+                var message = Message(Constants.CardDrop);
+                message.value[Constants.NewDrawnCard] = createCard(sourceCardValue);
+                send(message);
             },
             over: overFunction,
             out: outFunction,

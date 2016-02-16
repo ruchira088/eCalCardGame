@@ -40,6 +40,8 @@ var Constants =
     Action: "action",
     PlayAgain: "playAgain",
     FalseVictoryAnnouncement: "FalseVictoryAnnouncement",
+    NewDrawnCard: "NewDrawnCard",
+    OtherCard: "OtherCard",
     SinglePlayer: "SinglePlayer",
     MultiPlayer: "MultiPlayer",
     ChatMessage: "ChatMessage",

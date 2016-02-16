@@ -73,7 +73,11 @@
     initWebSocket("<%= player.name %>", "<%= type %>");
     <% var topCard = drawnCards.showTopCard() %>
     createDrawnCard(new Card("<%= topCard.suit %>", "<%= topCard.number %>"));
-    highlightActivePlayer("<%= onlineUsers[0]%>");
+
+    <% if (type === Constants.MultiPlayer)
+    { %>
+        highlightActivePlayer("<%= onlineUsers[0]%>");
+    <%} %>
 
     $(document).ready(function()
             {

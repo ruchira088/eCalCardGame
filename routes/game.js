@@ -96,11 +96,12 @@ function GamePlayers()
     }
 }
 
-function CardGame(game)
+function CardGame(game, gameType)
 {
     this.game = game;
+    this.gameType = gameType;
     this.players = new GamePlayers();
-    this.webSocketsMap = new Map();
+    this.webSocketMap = new Map();
     this.locked = false;
 }
 
@@ -172,7 +173,7 @@ function getActionMap()
         actionMap.set(Constants.Login, function (cardGame, value, webSocket)
         {
             webSocket.username = value.username;
-            cardGame.webSocketsMap.set(webSocket.username, webSocket);
+            cardGame.webSocketMap.set(webSocket.username, webSocket);
         });
 
         actionMap.set(Constants.CardPickUp, function (cardGame, value, webSocket)
@@ -208,26 +209,49 @@ function getActionMap()
             console.log(value);
         });
 
-        actionMap.set(Constants.DeclareVictory, function (value, webSocket) 
+        cardGame, value, webSocket
+
+        actionMap.set(Constants.DeclareVictory, function (value, webSocket)
         {
-            var playerCards = game.getPlayer(webSocket.username).showCards();
+            var playerCards = cardGame.game.getPlayer(webSocket.username).showCards();
 
-             requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+            requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+            {
+                if(outcome.result)
                 {
-                    if(outcome.result)
-                    {
-                        webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-                        sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
-                    } else
-                    {
-                        
-                        webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
-                        sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
-                    }
+                    webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+                    sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
+                } else
+                {
 
-                    console.log(JSON.stringify(outcome));
-                });
+                    webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
+                    sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
+                }
+
+                console.log(JSON.stringify(outcome));
+            });
         });
+
+        //actionMap.set(Constants.DeclareVictory, function (value, webSocket)
+        //{
+        //    var playerCards = game.getPlayer(webSocket.username).showCards();
+        //
+        //     requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
+        //        {
+        //            if(outcome.result)
+        //            {
+        //                webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+        //                sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
+        //            } else
+        //            {
+        //
+        //                webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
+        //                sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
+        //            }
+        //
+        //            console.log(JSON.stringify(outcome));
+        //        });
+        //});
 
         actionMap.set(Constants.ChatMessage, function(value, webSocket)
         {
@@ -235,16 +259,20 @@ function getActionMap()
             broadcast({type: Constants.ChatMessage, value: message});
         });
 
-        actionMap.set(Constants.CardDrop, function (value, webSocket, message)
+        actionMap.set(Constants.CardDrop, function (cardGame, value, webSocket)
         {
-            var card = new Card(value.suit, value.number);
-            var srcCard = message.srcCard;
-            locked = false;
+            var newDrawnCard = value[Constants.NewDrawnCard];
+            var card = new Card(newDrawnCard.suit, newDrawnCard.number);
 
-            if(srcCard)
+            var otherCard = value[Constants.OtherCard];
+
+            cardGame.locked = false;
+            cardGame.game.getDrawnCards().putCardOnTop();
+
+            if(otherCard)
             {
-                var player = game.getPlayer(webSocket.username);
-                player.cards.push(new Card(srcCard.suit, srcCard.number));
+                var player = cardGame.game.getPlayer(webSocket.username);
+                player.cards.push(new Card(otherCard.suit, otherCard.number));
                 player.removeCard(card);
 
                 if(AUTO_WIN)
@@ -272,11 +300,57 @@ function getActionMap()
             //console.log("Removing card " + JSON.stringify(card, null, 2));
             //game.getPlayer(webSocket.username).removeCard(card);
 
+            cardGame.players.nextUser();
+            broadcast({type: Constants.UpdateDrawnCard, value: card}, cardGame.webSocketMap);
 
-            onlineUsers.nextUser();
-            broadcast({type: Constants.UpdateDrawnCard, value: card});
-            broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
+            if(cardGame.gameType === Constants.MultiPlayer)
+            {
+                broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()}, cardGame.webSocketMap);
+            }
         });
+
+        //actionMap.set(Constants.CardDrop, function (value, webSocket, message)
+        //{
+        //    var card = new Card(value.suit, value.number);
+        //    var srcCard = message.srcCard;
+        //    locked = false;
+        //
+        //    if(srcCard)
+        //    {
+        //        var player = game.getPlayer(webSocket.username);
+        //        player.cards.push(new Card(srcCard.suit, srcCard.number));
+        //        player.removeCard(card);
+        //
+        //        if(AUTO_WIN)
+        //        {
+        //            var playerCards = game.getPlayer(webSocket.username).showCards();
+        //            requestDispatcher.hasWinningCards({cards: playerCards}, function (outcome) {
+        //                if (outcome.result) {
+        //                    webSocket.sendValue({
+        //                        type: Constants.Victory,
+        //                        value: {winner: webSocket.username, cardSets: outcome.cardSets}
+        //                    });
+        //                    sendToOthers({
+        //                        type: Constants.VictoryAnnouncement,
+        //                        value: {winner: webSocket.username, cardSets: outcome.cardSets}
+        //                    }, webSocket);
+        //                    //broadcast({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+        //                    // webSocket.sendValue({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
+        //                } else {
+        //                    webSocket.sendValue({type: Constants.Information, value: "Still Going"});
+        //                }
+        //                console.log(JSON.stringify(outcome));
+        //            });
+        //        }
+        //    }
+        //    //console.log("Removing card " + JSON.stringify(card, null, 2));
+        //    //game.getPlayer(webSocket.username).removeCard(card);
+        //
+        //
+        //    onlineUsers.nextUser();
+        //    broadcast({type: Constants.UpdateDrawnCard, value: card});
+        //    broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
+        //});
 
     }
 
@@ -504,7 +578,7 @@ router.get("/singlePlayer", function(request, response)
 
         game = game || (function()
             {
-                var singlePlayerGame = new CardGame(new Game([username]));
+                var singlePlayerGame = new CardGame(new Game([username], Constants.SinglePlayer));
                 singlePlayerGame.game.dealCards();
                 singlePlayerGame.players.addPlayers([username]);
                 singlePlayerMaps.set(username, singlePlayerGame);
@@ -568,7 +642,7 @@ router.post("/home", function (request, response)
     {
         if(onlineUsers.putIfAbsent(user))
         {
-            broadcast({type: Constants.LoggedInUser, value: user});
+            // broadcast({type: Constants.LoggedInUser, value: user});
         }
 
         response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
@@ -602,7 +676,7 @@ function send(user, message) {
     socket.sendValue(message);
 }
 
-function broadcast(message) {
+function broadcast(message, webSocketMap) {
     webSocketMap.forEach(function (socket) {
         socket.sendValue(message);
     });
