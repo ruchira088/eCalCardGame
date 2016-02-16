@@ -175,9 +175,13 @@ var CardGame = function (playerNames) {
         return players;
     };
 
-    for (var i = 0; i < playerNames.length; i++) {
-        this.addPlayer(new Player(playerNames[i]));
-    }
+    playerNames.forEach(function(name)
+    {
+        this.addPlayer(new Player(name));
+    }.bind(this));
+    //for (var i = 0; i < playerNames.length; i++) {
+    //    this.addPlayer(new Player(playerNames[i]));
+    //}
 };
 
 //var List = function()

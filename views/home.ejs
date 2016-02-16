@@ -24,6 +24,9 @@
         <% include templates/chatroom.ejs %>
     </div>
     <div>
+        <button id="singlePlayerBtn">Single Player</button>
+        <button id="multiPlayerBtn">MultiPlayer</button>
+
         <% if(!game)
         {%>
         <form action="/game/" method="POST">
@@ -36,10 +39,17 @@
         <%}%>
     </div>
     <script>
-        initWebSocket("<%= user %>");
+        //initWebSocket("<%= user %>");
         $(document).ready(function()
         {
             $("#chatArea").draggable();
+            $("#singlePlayerBtn").on("click", function()
+            {
+                $.post("/cookieCreator", {gameType: "singlePlayer", username: "<%= user %>"}, function()
+                {
+                    window.location = "/game/singlePlayer";
+                });
+            });
         });
     </script>
 </div>

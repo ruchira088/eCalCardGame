@@ -13,6 +13,17 @@ var Card = myObjects.Card;
 var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
 var game;
 
+
+var singlePlayerMaps = new Map();
+
+var gameMaps = (function()
+{
+    var gameMaps = {};
+    gameMaps[Constants.SinglePlayer] = singlePlayerMaps;
+
+    return gameMaps;
+})();
+
 var webSocketMap = new Map();
 var actionMap;
 
@@ -20,6 +31,78 @@ var onlineUsersInfo = new Map();
 var onlineUsers = [];
 myObjects.extendArray(onlineUsers);
 
+
+function GamePlayers()
+{
+    this.currentPosition = 0;
+    this.players = [];
+
+    this.remove = function(username)
+    {
+        this.players = this.players.filter(function(player)
+        {
+            return player.username != username;
+        });
+    };
+
+    this.get = function(username)
+    {
+          return this.players.filter(function(player)
+          {
+              return player.username === username;
+          }).pop();
+    };
+
+    this.addPlayers = function(players)
+    {
+        this.players = players.reduce(function(gamePlayers, player)
+        {
+            gamePlayers.push({username: player, token: createToken()});
+            return gamePlayers;
+        }, []);
+    };
+
+    this.putIfAbsent = function(username)
+    {
+      if(!this.get(username))
+      {
+          this.players.push({username: username, token: createToken()});
+          return true;
+      }
+
+        return false;
+    };
+
+    this.nextUser = function()
+    {
+        this.currentPosition++;
+
+        if(this.currentPosition >= this.players.length)
+        {
+            this.currentPosition = 0;
+        }
+
+        return this.players[this.currentPosition].username;
+    };
+
+    this.getCurrentUser = function()
+    {
+        return this.players[this.currentPosition].username;
+    };
+
+    function createToken()
+    {
+        return Math.random().toString(36).slice(2);
+    }
+}
+
+function CardGame(game)
+{
+    this.game = game;
+    this.players = new GamePlayers();
+    this.webSocketsMap = new Map();
+    this.locked = false;
+}
 
 onlineUsersInfo.getCookieInformation = function(user)
 {
@@ -42,10 +125,15 @@ wss.on("connection", function (ws)
     ws.on("message", function (jsonMessage)
      {
          console.log(jsonMessage);
+
          var message = JSON.parse(jsonMessage);
+         var value = message.value;
+
+         var cardGame = gameMaps[value.gameType].get(value.username);
 
          var action = getActionMap().get(message.type);
-         action(message.value, ws, message);
+
+         action(cardGame, value, ws);
 
          //ws.username = message;
          //webSocketMap.set(ws.username, ws);
@@ -67,10 +155,12 @@ function getActionMap()
     {
         var locked = false;
 
-        var isCurrentUser = function (webSocket) {
+        var isCurrentUser = function (cardGame, username)
+        {
             var currentUser = false;
 
-            if (onlineUsers.getCurrentUser() === webSocket.username) {
+            if(cardGame.players.getCurrentUser() === username)
+            {
                 currentUser = true;
             }
 
@@ -79,26 +169,39 @@ function getActionMap()
 
         actionMap = new Map();
 
-        actionMap.set(Constants.Login, function (value, webSocket) {
-            webSocket.username = value;
-            webSocketMap.set(webSocket.username, webSocket);
+        actionMap.set(Constants.Login, function (cardGame, value, webSocket)
+        {
+            webSocket.username = value.username;
+            cardGame.webSocketsMap.set(webSocket.username, webSocket);
         });
 
-        actionMap.set(Constants.CardPickUp, function (value, webSocket)
+        actionMap.set(Constants.CardPickUp, function (cardGame, value, webSocket)
         {
-            if (isCurrentUser(webSocket) && !locked)
+            if (isCurrentUser(cardGame, webSocket.username) && !cardGame.locked)
             {
-                cardPickUp(value, webSocket);
-                locked = true;
+                cardPickUp(cardGame, value.cardSource, webSocket);
             }
             else
             {
-                var message = {type: Constants.WaitForTurn, value: onlineUsers.getCurrentUser()};
-                webSocket.sendValue(message);
+                webSocket.sendValue({type: Constants.WaitForTurn, value: cardGame.players.getCurrentUser()});
             }
-
-
         });
+
+        //actionMap.set(Constants.CardPickUp, function (value, webSocket)
+        //{
+        //
+        //    if (isCurrentUser(webSocket) && !locked)
+        //    {
+        //        cardPickUp(value, webSocket);
+        //        locked = true;
+        //    }
+        //    else
+        //    {
+        //        var message = {type: Constants.WaitForTurn, value: onlineUsers.getCurrentUser()};
+        //        webSocket.sendValue(message);
+        //    }
+        //
+        //});
 
         actionMap.set(Constants.Information, function (value, webSocket)
         {
@@ -189,16 +292,17 @@ function sendToOthers(message, webSocket) {
 }
 
 
-function cardPickUp(value, webSocket) {
+function cardPickUp(cardGame, value, webSocket)
+{
     var event;
     var card;
 
     if (value == Constants.CARD_SOURCE.DECK) {
-        card = game.getDeck().pickUpCard();
+        card = cardGame.game.getDeck().pickUpCard();
         event = Constants.DeckCardPickUp;
     }
     else {
-        card = game.getDrawnCards().getTopCard();
+        card = cardGame.game.getDrawnCards().getTopCard();
         event = Constants.DrawnCardPickUp;
     }
     //
@@ -294,12 +398,14 @@ router.post("/", function (request, response) {
     var player = game.getPlayer(user);
     var drawnCards = game.getDrawnCards();
 
-    response.render("game", {player: player, drawnCards: drawnCards, onlineUsers: onlineUsers});
+    response.render("game", {player: player, drawnCards: drawnCards, type: Constants.MultiPlayer, onlineUsers: onlineUsers});
 });
 
 function delegateRequest(request, response, success, fail)
 {
     var userInfo = request.cookies.userInfo;
+
+    fail = fail || logoutUser;
 
     if(typeof userInfo != "undefined")
     {
@@ -327,12 +433,12 @@ router.get("/home", function (request, response)
     delegateRequest(request, response, function success(username)
     {
         response.render("home", {user: username, onlineUsers: onlineUsers, game: game});
-    }, logoutUser);
+    });
 });
 
 router.get("/logout", function (request, response)
 {
-    delegateRequest(request, response, logoutUser, logoutUser)
+    delegateRequest(request, response, logoutUser)
 });
 
 function logoutUser(username, request, response)
@@ -388,6 +494,27 @@ router.post("/home", function(request, response, next)
     {
         next();
     }
+});
+
+router.get("/singlePlayer", function(request, response)
+{
+    delegateRequest(request, response, function(username, request, response)
+    {
+        var game = singlePlayerMaps.get(username);
+
+        game = game || (function()
+            {
+                var singlePlayerGame = new CardGame(new Game([username]));
+                singlePlayerGame.game.dealCards();
+                singlePlayerGame.players.addPlayers([username]);
+                singlePlayerMaps.set(username, singlePlayerGame);
+                return singlePlayerGame.game;
+            }
+            )();
+
+        response.render("game", {player: game.getPlayer(username), type: Constants.SinglePlayer, drawnCards: game.getDrawnCards(), onlineUsers: [username]});
+
+    });
 });
 
 router.post("/home", function (request, response)

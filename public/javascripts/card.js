@@ -49,10 +49,27 @@ function getUsername()
 
 function pickUpCard(card)
 {
-    var event = {type: Constants.CardPickUp, value: card.getAttribute(Constants.CardSource)};
+    var message = Message(Constants.CardPickUp);
+    message.value.cardSource =  card.getAttribute(Constants.CardSource);
 
-    send(event);
+    send(message);
 
+}
+
+function getGameType()
+{
+    return Constants.SinglePlayer;
+}
+
+function Message(type)
+{
+    return {
+        type: type,
+        value: {
+            gameType: getGameType(),
+            username: getUsername()
+        }
+    };
 }
 
 function showDeckCard(card)
@@ -342,7 +359,8 @@ function send(message)
 {
     if (!g_webSocket)
     {
-        initWebSocket(getUsername(), message);
+        // TODO
+        initWebSocket(getUsername(), "<Modify this>",message);
     }
     else
     {
@@ -351,14 +369,15 @@ function send(message)
 }
 
 /** Initialize the web socket */
-function initWebSocket(username, message)
+function initWebSocket(username, gameType, message)
 {
     g_webSocket = new WebSocket("ws://" + location.hostname + ":" + Constants.WEB_SOCKET_SERVER_PORT);
 
     g_webSocket.onopen = function ()
     {
         console.log("Success");
-        send({type: Constants.Login, value: username});
+
+        send(Message(Constants.Login));
 
         if (message)
         {

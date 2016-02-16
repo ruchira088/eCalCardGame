@@ -40,7 +40,10 @@ var Constants =
     Action: "action",
     PlayAgain: "playAgain",
     FalseVictoryAnnouncement: "FalseVictoryAnnouncement",
+    SinglePlayer: "SinglePlayer",
+    MultiPlayer: "MultiPlayer",
     ChatMessage: "ChatMessage",
+    GameTypeNone: "None",
     UserLoggedOut: "UserLoggedOut",
     WEB_SOCKET_SERVER_PORT: 8080
 };
