@@ -209,9 +209,9 @@ function getActionMap()
             console.log(value);
         });
 
-        cardGame, value, webSocket
 
-        actionMap.set(Constants.DeclareVictory, function (value, webSocket)
+
+        actionMap.set(Constants.DeclareVictory, function (cardGame, value, webSocket)
         {
             var playerCards = cardGame.game.getPlayer(webSocket.username).showCards();
 
@@ -220,12 +220,11 @@ function getActionMap()
                 if(outcome.result)
                 {
                     webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-                    sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
+                    sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket, cardGame.webSocketMap);
                 } else
                 {
-
                     webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
-                    sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
+                    sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket, cardGame.webSocketMap);
                 }
 
                 console.log(JSON.stringify(outcome));
@@ -357,12 +356,12 @@ function getActionMap()
     return actionMap;
 }
 
-function sendToOthers(message, webSocket) {
-    webSocketMap.forEach(function (socket) {
-        if (webSocket != socket) {
-            socket.sendValue(message);
-        }
-    });
+function sendToOthers(message, webSocket, webSocketMap)
+{
+    broadcast(message, Array.from(webSocketMap.values()).filter(function(ws)
+    {
+        return webSocket != ws;
+    }));
 }
 
 
@@ -374,6 +373,7 @@ function cardPickUp(cardGame, value, webSocket)
     if (value == Constants.CARD_SOURCE.DECK) {
         card = cardGame.game.getDeck().pickUpCard();
         event = Constants.DeckCardPickUp;
+        cardGame.locked = true;
     }
     else {
         card = cardGame.game.getDrawnCards().getTopCard();
@@ -517,8 +517,8 @@ router.get("/logout", function (request, response)
 
 function logoutUser(username, request, response)
 {
-    onlineUsers.remove(username);
-    sendToOthers({type: Constants.UserLoggedOut, value: {loggedOutUser: username}}, webSocketMap.get(username));
+    //onlineUsers.remove(username);
+    //sendToOthers({type: Constants.UserLoggedOut, value: {loggedOutUser: username}}, webSocketMap.get(username));
     response.clearCookie("userInfo");
     response.redirect("login");
 }
