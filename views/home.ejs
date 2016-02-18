@@ -25,8 +25,38 @@
     </div>
     <div>
         <button id="singlePlayerBtn">Single Player</button>
-        <button id="multiPlayerBtn">MultiPlayer</button>
+        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#multiPlayerDialog">
+            MultiPlayer
+        </button>
 
+        <div class="modal fade" id="multiPlayerDialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            &times;
+                        </button>
+                        <h4 class="modal-title">
+                            Select the players you want to invite to the game
+                        </h4>
+                    </div>
+
+                    <div class="modal-body">
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="invitePlayersBtn" type="button" class="btn btn-primary">
+                            Invite Players
+                        </button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
         <% if(!game)
         {%>
         <form action="/game/" method="POST">
@@ -40,6 +70,22 @@
     </div>
     <script>
         //initWebSocket("<%= user %>");
+
+        var selectedPlayers = {
+            players: [],
+            add: function(value)
+            {
+                this.players.push(value);
+            },
+            remove: function(value)
+            {
+                this.players = this.players.filter(function(val)
+                {
+                    return val != value;
+                });
+            }
+        }
+
         $(document).ready(function()
         {
             $("#chatArea").draggable();
@@ -50,7 +96,40 @@
                     window.location = "/game/singlePlayer";
                 });
             });
+
+            $("#invitePlayersBtn").on("click", function()
+            {
+                console.log(selectedPlayers.players);
+            });
+
+            $("#multiPlayerDialog .modal-body").append(createOnlineUsersSelection(["apple", "ball", "cat", "dog", "fish", "elephant"]));
+
         });
+
+        //console.log(createOnlineUsersSelection(["apple", "ball", "cat"]).toString());
+
+        function createOnlineUsersSelection(onlineUsers)
+        {
+            return onlineUsers.reduce(function(output, user)
+            {
+                output.append($("<div class='checkbox'></div>").
+                    append($("<label></label>").
+                        append($("<input type='checkbox'>").on("change", function()
+                        {
+                            if($(this).prop("checked"))
+                            {
+                                selectedPlayers.add(user);
+                            } else
+                            {
+                                selectedPlayers.remove(user);
+                            }
+                        })).
+                        append(user)));
+
+                return output;
+
+            }, $("<div id='onlinePlayersList'></div>"));
+        }
     </script>
 </div>
 </body>

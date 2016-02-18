@@ -5,6 +5,11 @@
   margin: auto;
 }
 
+#multiPlayerDialog label
+{
+  color: black;
+}
+
 #startGameBtn
 {
   position: absolute;
