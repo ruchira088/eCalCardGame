@@ -43,7 +43,10 @@
                     </div>
 
                     <div class="modal-body">
+                        <input id="onlinePlayerSearch" type="text" class="form-control">
+                        <div id='onlinePlayersList'>
 
+                        </div>
                     </div>
 
                     <div class="modal-footer">
@@ -86,6 +89,8 @@
             }
         }
 
+        const onlinePlayers = ["apple", "ball", "cat", "dog", "fish", "elephant"];
+
         $(document).ready(function()
         {
             $("#chatArea").draggable();
@@ -102,34 +107,71 @@
                 console.log(selectedPlayers.players);
             });
 
-            $("#multiPlayerDialog .modal-body").append(createOnlineUsersSelection(["apple", "ball", "cat", "dog", "fish", "elephant"]));
+            $("#onlinePlayerSearch").on("keyup", function()
+            {
+                renderOnlineUsersTable(onlinePlayers.filter(function(player)
+                {
+                    return player.indexOf($(this).val()) != -1;
+                }.bind(this)));
+            });
+
+            renderOnlineUsersTable(onlinePlayers);
 
         });
 
+//        function renderOnlineUsersTable(onlineUsers)
+//        {
+//            $("#multiPlayerDialog .modal-body ").empty().append(createOnlineUsersSelection(onlineUsers));
+//        }
+
         //console.log(createOnlineUsersSelection(["apple", "ball", "cat"]).toString());
 
-        function createOnlineUsersSelection(onlineUsers)
+        function renderOnlineUsersTable(onlineUsers)
         {
-            return onlineUsers.reduce(function(output, user)
+            var playerList = $("#onlinePlayersList").empty();
+
+            onlineUsers.forEach(function(user)
             {
-                output.append($("<div class='checkbox'></div>").
+                playerList.append($("<div class='checkbox'></div>").
                     append($("<label></label>").
-                        append($("<input type='checkbox'>").on("change", function()
+                    append($("<input type='checkbox'>").on("change", function()
+                    {
+                        if($(this).prop("checked"))
                         {
-                            if($(this).prop("checked"))
-                            {
-                                selectedPlayers.add(user);
-                            } else
-                            {
-                                selectedPlayers.remove(user);
-                            }
-                        })).
-                        append(user)));
-
-                return output;
-
-            }, $("<div id='onlinePlayersList'></div>"));
+                            selectedPlayers.add(user);
+                        } else
+                        {
+                            selectedPlayers.remove(user);
+                        }
+                    }).prop("checked", selectedPlayers.players.indexOf(user) != -1)).
+                    append(user)));
+            });
         }
+
+//        function renderOnlineUsersTable(onlineUsers)
+//        {
+//            onlineUsers.reduce(function(output, user)
+//            {
+//                output.append($("<div class='checkbox'></div>").
+//                    append($("<label></label>").
+//                        append($("<input type='checkbox'>").on("change", function()
+//                        {
+//                            if($(this).prop("checked"))
+//                            {
+//                                selectedPlayers.add(user);
+//                            } else
+//                            {
+//                                selectedPlayers.remove(user);
+//                            }
+//                        })).
+//                        append(user)));
+//
+//                return output;
+//
+//            }, (function(){
+//                return $("#onlinePlayersList").empty();
+//            })());
+//        }
     </script>
 </div>
 </body>
