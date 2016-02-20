@@ -19,6 +19,7 @@
     "jquery": "~2.2.0",
     "jquery-ui": "~1.11.4",
     "bootstrap": "~3.3.6",
-    "toastr": "~2.1.2"
+    "toastr": "~2.1.2",
+    "handlebars": "^4.0.5"
   }
 }

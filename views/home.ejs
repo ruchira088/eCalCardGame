@@ -5,6 +5,7 @@
     <title>Home</title>
     <% include templates/header.ejs %>
     <% include templates/notifications.ejs %>
+    <script src="/bower_components/handlebars/handlebars.js"></script>
 </head>
 <body>
 <div id="homepage" class="container">
@@ -29,37 +30,9 @@
             MultiPlayer
         </button>
 
-        <div class="modal fade" id="multiPlayerDialog" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">
-                            &times;
-                        </button>
-                        <h4 class="modal-title">
-                            Select the players you want to invite to the game
-                        </h4>
-                    </div>
-
-                    <div class="modal-body">
-                        <input id="onlinePlayerSearch" type="text" class="form-control">
-                        <div id='onlinePlayersList'>
-
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button id="invitePlayersBtn" type="button" class="btn btn-primary">
-                            Invite Players
-                        </button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div id="modalDialogContainer">
         </div>
+
         <% if(!game)
         {%>
         <form action="/game/" method="POST">
@@ -71,6 +44,45 @@
             <div>A game is in progress</div>
         <%}%>
     </div>
+    <script id="modalDialogTemplate" type="text/x-handlebars-template">
+        <div class="modal fade" id="{{id}}" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            &times;
+                        </button>
+                        <h4 class="modal-title">
+                            {{title}}
+                        </h4>
+                    </div>
+
+                    <div class="modal-body">
+                        {{{body}}}
+                    </div>
+
+                    <div class="modal-footer">
+                        {{{footer}}}
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="multiPlayerFooter" type="text/x-handlebars-template">
+        <button id="invitePlayersBtn" type="button" data-dismiss="modal" data-toggle="modal"
+                data-target="#selectedPlayersDialog" class="btn btn-primary">
+            Invite Players
+        </button>
+    </script>
+    <script id="multiPlayerBody" type="text/x-handlebars-template">
+        <input id="onlinePlayerSearch" type="text" class="form-control">
+        <div id='onlinePlayersList'>
+        </div>
+    </script>
     <script>
         //initWebSocket("<%= user %>");
 
@@ -102,9 +114,34 @@
                 });
             });
 
+            var modalDialogTemplate = Handlebars.compile($("#modalDialogTemplate").html());
+            var multiPlayerBody = Handlebars.compile($("#multiPlayerBody").html());
+            var multiPlayerFooter = Handlebars.compile($("#multiPlayerFooter").html());
+
+            var multiPlayerDialog = modalDialogTemplate({
+                id: "multiPlayerDialog",
+                title: "Select the players you want to invite to the game",
+                body: multiPlayerBody(),
+                footer: multiPlayerFooter()
+            });
+
+            var selectedPlayersDialog = modalDialogTemplate({
+                id: "selectedPlayersDialog",
+                title: "Waiting for the players to respond",
+                body: "<div id='selectedPlayers'></div>"
+            });
+
+            $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog);
+
             $("#invitePlayersBtn").on("click", function()
             {
-                console.log(selectedPlayers.players);
+                var selectedPlayerContainer = $("#selectedPlayersDialog #selectedPlayers").empty();
+
+                selectedPlayers.players.forEach(function(player)
+                {
+                    selectedPlayerContainer.append($("<div></div>").attr("data-player-name", player).text(player));
+                });
+
             });
 
             $("#onlinePlayerSearch").on("keyup", function()
@@ -118,13 +155,6 @@
             renderOnlineUsersTable(onlinePlayers);
 
         });
-
-//        function renderOnlineUsersTable(onlineUsers)
-//        {
-//            $("#multiPlayerDialog .modal-body ").empty().append(createOnlineUsersSelection(onlineUsers));
-//        }
-
-        //console.log(createOnlineUsersSelection(["apple", "ball", "cat"]).toString());
 
         function renderOnlineUsersTable(onlineUsers)
         {
@@ -148,30 +178,6 @@
             });
         }
 
-//        function renderOnlineUsersTable(onlineUsers)
-//        {
-//            onlineUsers.reduce(function(output, user)
-//            {
-//                output.append($("<div class='checkbox'></div>").
-//                    append($("<label></label>").
-//                        append($("<input type='checkbox'>").on("change", function()
-//                        {
-//                            if($(this).prop("checked"))
-//                            {
-//                                selectedPlayers.add(user);
-//                            } else
-//                            {
-//                                selectedPlayers.remove(user);
-//                            }
-//                        })).
-//                        append(user)));
-//
-//                return output;
-//
-//            }, (function(){
-//                return $("#onlinePlayersList").empty();
-//            })());
-//        }
     </script>
 </div>
 </body>
