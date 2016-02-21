@@ -23,6 +23,7 @@ var actionMap;
 
 var onlinePlayers = new Map();
 
+// TODO Remove soon
 var onlineUsersInfo = new Map();
 var onlineUsers = [];
 myObjects.extendArray(onlineUsers);
@@ -41,6 +42,11 @@ function GamePlayers()
         });
     };
 
+    this.getPlayers = function()
+    {
+      return this.players;
+    };
+
     this.get = function(username)
     {
           return this.players.filter(function(player)
@@ -55,7 +61,7 @@ function GamePlayers()
         {
             gamePlayers.push({username: player, token: createRandomString()});
             return gamePlayers;
-        }, []);
+        }, this.players);
     };
 
     this.putIfAbsent = function(username)
@@ -221,6 +227,23 @@ function getActionMap()
             sendToOthers({type: Constants.LoggedInUser, value: webSocket.username}, webSocket, onlinePlayers);
         });
 
+        actionMap.set(Constants.GameInvitation, function(cardGame, players, webSocket)
+        {
+            var allPlayers = players.slice();
+            allPlayers.push(webSocket.username);
+
+            var multiPlayerGame = new CardGame(new Game(allPlayers), createRandomString());
+            multiPlayerGame.game.dealCards();
+            gameMaps.set(multiPlayerGame.id, multiPlayerGame);
+
+            players.forEach(function(playerName)
+            {
+                var webSocket = onlinePlayers.get(playerName);
+                webSocket.sendValue({type: Constants.GameInvitation, value:{gameId: multiPlayerGame.id, players: allPlayers}});
+            });
+
+        });
+
         actionMap.set(Constants.CardPickUp, function (cardGame, value, webSocket)
         {
             if (isCurrentUser(cardGame, webSocket.username) && !cardGame.locked)
@@ -311,7 +334,7 @@ function getActionMap()
             var otherCard = value[Constants.OtherCard];
 
             cardGame.locked = false;
-            cardGame.game.getDrawnCards().putCardOnTop();
+            //cardGame.game.getDrawnCards().putCardOnTop();
 
             if(otherCard)
             {

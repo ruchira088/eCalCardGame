@@ -46,6 +46,7 @@ var Constants =
     MultiPlayer: "MultiPlayer",
     GameId: "GameId",
     HomeLogin: "HomeLogin",
+    GameInvitation: "GameInvitation",
     ChatMessage: "ChatMessage",
     UserInformation: "UserInformation",
     GameTypeNone: "None",

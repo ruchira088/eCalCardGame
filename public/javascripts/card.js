@@ -68,12 +68,14 @@ function getGameType()
     }
 }
 
-function Message(type)
+function Message(type, value)
 {
+    value = value || {};
+
     return {
         type: type,
         cookies: document.cookie,
-        value: {}
+        value: value
     };
 }
 
@@ -135,6 +137,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.UserLoggedOut, userLoggedOut);
 
+        g_actionMap.set(Constants.GameInvitation, gameInvitation);
+
         g_actionMap.set(Constants.Information, function (value)
         {
             console.log(value);
@@ -144,6 +148,11 @@ function performAction(message)
 
     var action = g_actionMap.get(message.type);
     action(message.value);
+}
+
+function gameInvitation(value)
+{
+    $("#gameInvitation").modal("show");
 }
 
 function opponentFalseVictoryAnnouncement(message)
@@ -362,15 +371,7 @@ function addToOnlineUserTable(loggedInUser)
 /** Send a message to the web socket server */
 function send(message)
 {
-    if (!g_webSocket)
-    {
-        // TODO
-        initWebSocket(getUsername(), "<Modify this>",message);
-    }
-    else
-    {
-        g_webSocket.send(JSON.stringify(message));
-    }
+    g_webSocket.send(JSON.stringify(message));
 }
 
 /** Initialize the web socket */

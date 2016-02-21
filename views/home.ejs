@@ -104,7 +104,8 @@
             }
         }
 
-        const onlinePlayers = ["apple", "ball", "cat", "dog", "fish", "elephant"];
+        const onlinePlayers = <%- JSON.stringify(onlineUsers) %>;
+        //const onlinePlayers = ["apple", "ball", "cat", "dog", "fish", "elephant"];
 
         $(document).ready(function()
         {
@@ -127,7 +128,13 @@
                 body: "<div id='selectedPlayers'></div>"
             });
 
-            $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog);
+            var gameInvitation =  modalDialogTemplate({
+                id: "gameInvitation",
+                title: "Game Invitation",
+                body: "<div id='gameSummary'></div>"
+            });
+
+            $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog).append(gameInvitation);
 
             $("#invitePlayersBtn").on("click", function()
             {
@@ -137,6 +144,8 @@
                 {
                     selectedPlayerContainer.append($("<div></div>").attr("data-player-name", player).text(player));
                 });
+
+                send(Message(Constants.GameInvitation, selectedPlayers.players));
 
             });
 
