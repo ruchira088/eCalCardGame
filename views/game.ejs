@@ -70,7 +70,7 @@
 
 </div>
 <script>
-    initWebSocket("<%= player.name %>", "<%= type %>");
+    initWebSocket(Constants.Login);
     <% var topCard = drawnCards.showTopCard() %>
     createDrawnCard(new Card("<%= topCard.suit %>", "<%= topCard.number %>"));
 

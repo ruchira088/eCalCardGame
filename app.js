@@ -9,7 +9,6 @@ var routes = require('./routes/index');
 var users = require('./routes/users');
 var new_user = require('./routes/new_user');
 var game = require('./routes/game');
-var cookieCreator = require('./routes/cookieCreator').router;
 
 var app = express();
 
@@ -30,7 +29,6 @@ app.use('/bower_components', express.static(path.join(__dirname, 'bower_componen
 app.use('/onlineUsers', users);
 app.use('/new_user', new_user);
 app.use('/game', game);
-app.use("/cookieCreator", cookieCreator);
 
 
 app.use('/*', routes);

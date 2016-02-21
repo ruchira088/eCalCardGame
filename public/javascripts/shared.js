@@ -44,7 +44,10 @@ var Constants =
     OtherCard: "OtherCard",
     SinglePlayer: "SinglePlayer",
     MultiPlayer: "MultiPlayer",
+    GameId: "GameId",
+    HomeLogin: "HomeLogin",
     ChatMessage: "ChatMessage",
+    UserInformation: "UserInformation",
     GameTypeNone: "None",
     UserLoggedOut: "UserLoggedOut",
     WEB_SOCKET_SERVER_PORT: 8080

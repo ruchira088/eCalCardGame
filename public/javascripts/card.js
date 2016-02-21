@@ -56,19 +56,24 @@ function pickUpCard(card)
 
 }
 
+// TODO Fix this. At the moment, this is just a mock
 function getGameType()
 {
-    return Constants.SinglePlayer;
+    if(location.href.indexOf("singlePlayer") != -1)
+    {
+        return Constants.SinglePlayer;
+    } else
+    {
+        return Constants.GameTypeNone;
+    }
 }
 
 function Message(type)
 {
     return {
         type: type,
-        value: {
-            gameType: getGameType(),
-            username: getUsername()
-        }
+        cookies: document.cookie,
+        value: {}
     };
 }
 
@@ -146,10 +151,10 @@ function opponentFalseVictoryAnnouncement(message)
     console.log(message.player + " falsely announced victory");
 }
 
-function userLoggedOut(message)
+function userLoggedOut(loggedOutUser)
 {
-    showInfo(message.loggedOutUser + " has logged out.");
-    removeUserFromOnlineTableMarkup(message.loggedOutUser);
+    showInfo(loggedOutUser + " has logged out.");
+    removeUserFromOnlineTableMarkup(loggedOutUser);
 }
 
 function removeUserFromOnlineTableMarkup(username)
@@ -369,20 +374,17 @@ function send(message)
 }
 
 /** Initialize the web socket */
-function initWebSocket(username, gameType, message)
+function initWebSocket(type)
 {
+    type = type || Constants.HomeLogin;
+
     g_webSocket = new WebSocket("ws://" + location.hostname + ":" + Constants.WEB_SOCKET_SERVER_PORT);
 
     g_webSocket.onopen = function ()
     {
         console.log("Success");
 
-        send(Message(Constants.Login));
-
-        if (message)
-        {
-            send(message);
-        }
+        send(Message(type));
     };
 
     g_webSocket.onmessage = function (jsonMessage)

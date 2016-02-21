@@ -16,16 +16,12 @@ var game;
 
 var singlePlayerMaps = new Map();
 
-var gameMaps = (function()
-{
-    var gameMaps = {};
-    gameMaps[Constants.SinglePlayer] = singlePlayerMaps;
-
-    return gameMaps;
-})();
+var gameMaps = new Map();
 
 var webSocketMap = new Map();
 var actionMap;
+
+var onlinePlayers = new Map();
 
 var onlineUsersInfo = new Map();
 var onlineUsers = [];
@@ -57,7 +53,7 @@ function GamePlayers()
     {
         this.players = players.reduce(function(gamePlayers, player)
         {
-            gamePlayers.push({username: player, token: createToken()});
+            gamePlayers.push({username: player, token: createRandomString()});
             return gamePlayers;
         }, []);
     };
@@ -66,7 +62,7 @@ function GamePlayers()
     {
       if(!this.get(username))
       {
-          this.players.push({username: username, token: createToken()});
+          this.players.push({username: username, token: createRandomString()});
           return true;
       }
 
@@ -90,17 +86,19 @@ function GamePlayers()
         return this.players[this.currentPosition].username;
     };
 
-    function createToken()
-    {
-        return Math.random().toString(36).slice(2);
-    }
 }
 
-function CardGame(game, gameType)
+function CardGame(game, id)
 {
     this.game = game;
-    this.gameType = gameType;
-    this.players = new GamePlayers();
+    this.id = id;
+    this.players = (function()
+    {
+        var gamePlayers = new GamePlayers();
+        gamePlayers.addPlayers(Array.from(game.getPlayers().keys()));
+
+        return gamePlayers;
+    })();
     this.webSocketMap = new Map();
     this.locked = false;
 }
@@ -128,13 +126,27 @@ wss.on("connection", function (ws)
          console.log(jsonMessage);
 
          var message = JSON.parse(jsonMessage);
-         var value = message.value;
 
-         var cardGame = gameMaps[value.gameType].get(value.username);
+         var identity = extractIdentity(message.cookies);
+         message.value.username = identity[Constants.UserInformation].username;
 
+         var cardGame = gameMaps.get(identity[Constants.GameId]);
          var action = getActionMap().get(message.type);
+         action(cardGame, message.value, ws);
 
-         action(cardGame, value, ws);
+         //if(value.gameType === Constants.GameTypeNone)
+         //{
+         //    onlinePlayers.set(value.username, ws);
+         //    sendToOthers({type: Constants.LoggedInUser, value: value.username}, ws, onlinePlayers.getWebSockets());
+         //} else
+         //{
+         //    var cardGame = gameMaps[value.gameType].get(value.username);
+         //
+         //    var action = getActionMap().get(message.type);
+         //
+         //    action(cardGame, value, ws);
+         //}
+
 
          //ws.username = message;
          //webSocketMap.set(ws.username, ws);
@@ -145,10 +157,35 @@ wss.on("connection", function (ws)
 
     ws.on("close", function ()
     {
-        webSocketMap.delete(ws.username);
+        if(ws.gameId)
+        {
+            gameMaps.get(ws.gameId).webSocketMap.delete(ws.username);
+        } else
+        {
+            onlinePlayers.delete(ws.username);
+            broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
+        }
+
+        //webSocketMap.delete(ws.username);
+        //onlineUsers.remove(ws.username);
     });
 
 });
+
+function extractIdentity(cookie)
+{
+    var identity = cookie.split(";").reduce(function(result, value)
+    {
+        var map = value.split("=");
+        result[map[0].trim()] = decodeURIComponent(map[1]);
+
+        return result;
+    }, {});
+
+    identity[Constants.UserInformation] = getUserInfoFromCookie(identity[Constants.UserInformation]);
+
+    return identity;
+}
 
 function getActionMap()
 {
@@ -173,7 +210,15 @@ function getActionMap()
         actionMap.set(Constants.Login, function (cardGame, value, webSocket)
         {
             webSocket.username = value.username;
+            webSocket.gameId = cardGame.id;
             cardGame.webSocketMap.set(webSocket.username, webSocket);
+        });
+
+        actionMap.set(Constants.HomeLogin, function(cardGame, value, webSocket)
+        {
+            webSocket.username = value.username;
+            onlinePlayers.set(webSocket.username, webSocket);
+            sendToOthers({type: Constants.LoggedInUser, value: webSocket.username}, webSocket, onlinePlayers);
         });
 
         actionMap.set(Constants.CardPickUp, function (cardGame, value, webSocket)
@@ -401,7 +446,7 @@ onlineUsers.putIfAbsent = function (value)
     if (this.indexOf(value) === -1)
     {
         this.push(value);
-        onlineUsersInfo.set(value, {token: Math.random().toString(36).slice(2)});
+        onlineUsersInfo.set(value, {token: createRandomString()});
         return true;
     }
 
@@ -429,7 +474,7 @@ onlineUsers.getCurrentUser = function () {
 
 router.get("/login", function (request, response)
 {
-    if(typeof request.cookies.userInfo != "undefined")
+    if(typeof request.cookies[Constants.UserInformation] != "undefined")
     {
         response.redirect("home");
 
@@ -477,7 +522,7 @@ router.post("/", function (request, response) {
 
 function delegateRequest(request, response, success, fail)
 {
-    var userInfo = request.cookies.userInfo;
+    var userInfo = request.cookies[Constants.UserInformation];
 
     fail = fail || logoutUser;
 
@@ -506,7 +551,7 @@ router.get("/home", function (request, response)
 {
     delegateRequest(request, response, function success(username)
     {
-        response.render("home", {user: username, onlineUsers: onlineUsers, game: game});
+        response.render("home", {user: username, onlineUsers: onlineUsers.slice().sort(), game: game});
     });
 });
 
@@ -519,7 +564,8 @@ function logoutUser(username, request, response)
 {
     //onlineUsers.remove(username);
     //sendToOthers({type: Constants.UserLoggedOut, value: {loggedOutUser: username}}, webSocketMap.get(username));
-    response.clearCookie("userInfo");
+    response.clearCookie(Constants.UserInformation);
+    response.clearCookie(Constants.GameId);
     response.redirect("login");
 }
 
@@ -574,19 +620,20 @@ router.get("/singlePlayer", function(request, response)
 {
     delegateRequest(request, response, function(username, request, response)
     {
-        var game = singlePlayerMaps.get(username);
+        var game = gameMaps.get(request.cookies[Constants.GameId]);
 
         game = game || (function()
             {
-                var singlePlayerGame = new CardGame(new Game([username], Constants.SinglePlayer));
+                var singlePlayerGame = new CardGame(new Game([username]), createRandomString());
                 singlePlayerGame.game.dealCards();
-                singlePlayerGame.players.addPlayers([username]);
-                singlePlayerMaps.set(username, singlePlayerGame);
+                gameMaps.set(singlePlayerGame.id, singlePlayerGame);
+                response.cookie(Constants.GameId, singlePlayerGame.id);
                 return singlePlayerGame.game;
             }
             )();
 
-        response.render("game", {player: game.getPlayer(username), type: Constants.SinglePlayer, drawnCards: game.getDrawnCards(), onlineUsers: [username]});
+        response.render("game", {player: game.getPlayer(username), type: Constants.SinglePlayer,
+            drawnCards: game.getDrawnCards(), onlineUsers: [username]});
 
     });
 });
@@ -645,7 +692,7 @@ router.post("/home", function (request, response)
             // broadcast({type: Constants.LoggedInUser, value: user});
         }
 
-        response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
+        response.cookie(Constants.UserInformation, onlineUsersInfo.getCookieInformation(user));
     }
 });
 
@@ -681,5 +728,20 @@ function broadcast(message, webSocketMap) {
         socket.sendValue(message);
     });
 }
+
+function createRandomString(strength)
+{
+    strength = strength || 2;
+
+    var randomString = "";
+
+    for(var i = 0; i < strength; i++)
+    {
+        randomString += Math.random().toString(36).slice(2);
+    }
+
+    return randomString;
+}
+
 
 module.exports = router;
