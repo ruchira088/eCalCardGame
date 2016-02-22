@@ -239,7 +239,8 @@ function getActionMap()
             players.forEach(function(playerName)
             {
                 var webSocket = onlinePlayers.get(playerName);
-                webSocket.sendValue({type: Constants.GameInvitation, value:{gameId: multiPlayerGame.id, players: allPlayers}});
+                webSocket.sendValue({type: Constants.GameInvitation, value:{gameId: multiPlayerGame.id,
+                    initiator: webSocket.username, players: allPlayers}});
             });
 
         });

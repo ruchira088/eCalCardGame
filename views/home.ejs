@@ -57,7 +57,7 @@
                             &times;
                         </button>
                         <h4 class="modal-title">
-                            {{title}}
+                            {{{title}}}
                         </h4>
                     </div>
 
@@ -94,6 +94,7 @@
             add: function(value)
             {
                 this.players.push(value);
+                this.players.sort();
             },
             remove: function(value)
             {
@@ -130,7 +131,7 @@
 
             var gameInvitation =  modalDialogTemplate({
                 id: "gameInvitation",
-                title: "Game Invitation",
+                title: "<span id='gameInvitationTitle'></span>",
                 body: "<div id='gameSummary'></div>"
             });
 

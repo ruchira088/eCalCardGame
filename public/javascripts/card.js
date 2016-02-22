@@ -150,8 +150,16 @@ function performAction(message)
     action(message.value);
 }
 
-function gameInvitation(value)
+function gameInvitation(values)
 {
+    $("#gameInvitationTitle").text(values.initiator + " has invited you to a game.");
+
+    $("#gameSummary").append(values.players.reduce(function(output, player)
+    {
+        return output.append($("<div class='gamePlayer'></div>").text(player));
+
+    }, $("<div id='gamePlayers'></div>")));
+
     $("#gameInvitation").modal("show");
 }
 
