@@ -139,6 +139,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.GameInvitation, gameInvitation);
 
+        g_actionMap.set(Constants.AcceptInvitation, acceptedInvitation);
+
         g_actionMap.set(Constants.Information, function (value)
         {
             console.log(value);
@@ -150,15 +152,21 @@ function performAction(message)
     action(message.value);
 }
 
+function acceptedInvitation(values)
+{
+    console.log(values);
+    //$("div.auto_update [data-player-name]")
+}
+
 function gameInvitation(values)
 {
     $("#gameInvitationTitle").text(values.initiator + " has invited you to a game.");
 
     $("#gameSummary").append(values.players.reduce(function(output, player)
     {
-        return output.append($("<div class='gamePlayer'></div>").text(player));
+        return output.append($("<div data-player-name='" + player +"' class='gamePlayer'></div>").text(player));
 
-    }, $("<div id='gamePlayers'></div>")));
+    }, $("<div id='gamePlayers' class='auto_update'></div>"))).attr("data-game-id", values.gameId);
 
     $("#gameInvitation").modal("show");
 }

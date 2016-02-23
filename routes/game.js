@@ -233,15 +233,28 @@ function getActionMap()
             allPlayers.push(webSocket.username);
 
             var multiPlayerGame = new CardGame(new Game(allPlayers), createRandomString());
+            multiPlayerGame.webSocketMap.set(webSocket.username, webSocket);
             multiPlayerGame.game.dealCards();
             gameMaps.set(multiPlayerGame.id, multiPlayerGame);
 
             players.forEach(function(playerName)
             {
+                // TODO - Remember to remove the socket from the online player map (but NOT the game map), when the player is in a game
                 var webSocket = onlinePlayers.get(playerName);
+                multiPlayerGame.webSocketMap.set(playerName, webSocket);
                 webSocket.sendValue({type: Constants.GameInvitation, value:{gameId: multiPlayerGame.id,
                     initiator: webSocket.username, players: allPlayers}});
             });
+
+        });
+
+        actionMap.set(Constants.AcceptInvitation, function(cardGame, values, webSocket)
+        {
+            sendToOthers({type: Constants.AcceptInvitation, value: webSocket.username}, webSocket, cardGame.webSocketMap)
+        });
+
+        actionMap.set(Constants.RejectInvitation, function(cardGame, value, webSocket)
+        {
 
         });
 

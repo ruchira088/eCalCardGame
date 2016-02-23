@@ -47,6 +47,8 @@ var Constants =
     GameId: "GameId",
     HomeLogin: "HomeLogin",
     GameInvitation: "GameInvitation",
+    RejectInvitation: "RejectInvitation",
+    AcceptInvitation: "AcceptInvitation",
     ChatMessage: "ChatMessage",
     UserInformation: "UserInformation",
     GameTypeNone: "None",

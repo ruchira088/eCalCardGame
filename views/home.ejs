@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
@@ -67,9 +67,6 @@
 
                     <div class="modal-footer">
                         {{{footer}}}
-                        <button type="button" class="btn btn-default" data-dismiss="modal">
-                            Close
-                        </button>
                     </div>
                 </div>
             </div>
@@ -85,6 +82,14 @@
         <input id="onlinePlayerSearch" type="text" class="form-control">
         <div id='onlinePlayersList'>
         </div>
+    </script>
+    <!--<script id="closeBtnTemplate" type="text/x-handlebars-template">-->
+        <!--<button type="button" class="btn btn-default" data-dismiss="modal">-->
+            <!--Close-->
+        <!--</button>-->
+    <!--</script>-->
+    <script id="btnTemplate" type="text/x-handlebars-template">
+        <button id="{{id}}" type="button" class="btn{{classes}}" {{{attributes}}}>{{label}}</button>
     </script>
     <script>
         initWebSocket();
@@ -115,25 +120,37 @@
             var modalDialogTemplate = Handlebars.compile($("#modalDialogTemplate").html());
             var multiPlayerBody = Handlebars.compile($("#multiPlayerBody").html());
             var multiPlayerFooter = Handlebars.compile($("#multiPlayerFooter").html());
+            var btnTemplate = Handlebars.compile($("#btnTemplate").html());
 
             var multiPlayerDialog = modalDialogTemplate({
                 id: "multiPlayerDialog",
                 title: "Select the players you want to invite to the game",
                 body: multiPlayerBody(),
-                footer: multiPlayerFooter()
+                footer:  multiPlayerFooter() + btnTemplate(closeBtnParameters("multipleCloseBtn"))
             });
 
             var selectedPlayersDialog = modalDialogTemplate({
                 id: "selectedPlayersDialog",
                 title: "Waiting for the players to respond",
-                body: "<div id='selectedPlayers'></div>"
+                body: "<div id='selectedPlayers' class='auto_update'></div>",
+                footer: btnTemplate(closeBtnParameters("selectedPlayerCloseBtn"))
             });
 
             var gameInvitation =  modalDialogTemplate({
                 id: "gameInvitation",
                 title: "<span id='gameInvitationTitle'></span>",
-                body: "<div id='gameSummary'></div>"
+                body: "<div id='gameSummary'></div>",
+                footer: btnTemplate({
+                    id: "acceptBtn",
+                    label: "Accept Invitation",
+                    classes: " btn-success"
+                }) + btnTemplate({
+                    id: "rejectBtn",
+                    label: "Reject",
+                    classes: " btn-danger"
+                })
             });
+
 
             $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog).append(gameInvitation);
 
@@ -150,6 +167,18 @@
 
             });
 
+            $("#rejectBtn").on("click", function()
+            {
+                $("#gameInvitation").modal("hide");
+                //send(Message(Constants.RejectInvitation));
+            });
+
+            $("#acceptBtn").on("click", function()
+            {
+                document.cookie = Constants.GameId + "=" + $("#gameSummary").attr("data-game-id");
+                send(Message(Constants.AcceptInvitation));
+            });
+
             $("#onlinePlayerSearch").on("keyup", function()
             {
                 renderOnlineUsersTable(onlinePlayers.filter(function(player)
@@ -161,6 +190,16 @@
             renderOnlineUsersTable(onlinePlayers);
 
         });
+
+        function closeBtnParameters(id)
+        {
+            return {
+                id: id,
+                label: "Close",
+                classes:" btn-default",
+                attributes: "data-dismiss='modal'"
+            }
+        }
 
         function renderOnlineUsersTable(onlineUsers)
         {
