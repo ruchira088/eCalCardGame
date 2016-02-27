@@ -250,7 +250,7 @@ function getActionMap()
 
         actionMap.set(Constants.AcceptInvitation, function(cardGame, values, webSocket)
         {
-            sendToOthers({type: Constants.AcceptInvitation, value: webSocket.username}, webSocket, cardGame.webSocketMap)
+            broadcast({type: Constants.AcceptInvitation, value: {username: webSocket.username, response: Constants.AcceptInvitation}}, cardGame.webSocketMap)
         });
 
         actionMap.set(Constants.RejectInvitation, function(cardGame, value, webSocket)

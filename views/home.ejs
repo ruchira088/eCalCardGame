@@ -179,6 +179,13 @@
                 send(Message(Constants.AcceptInvitation));
             });
 
+            $("#rejectBtn").on("click", function()
+            {
+                document.cookie = Constants.GameId + "=" + $("#gameSummary").attr("data-game-id");
+                send(Message(Constants.RejectInvitation));
+                removeCookie(Constants.GameId);
+            });
+
             $("#onlinePlayerSearch").on("keyup", function()
             {
                 renderOnlineUsersTable(onlinePlayers.filter(function(player)

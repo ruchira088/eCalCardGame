@@ -79,6 +79,11 @@ function Message(type, value)
     };
 }
 
+function removeCookie(key)
+{
+    document.cookie = key + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+}
+
 function showDeckCard(card)
 {
     $(createCardElement(new Card(card.suit, card.number)))
@@ -154,6 +159,8 @@ function performAction(message)
 
 function acceptedInvitation(values)
 {
+    $("div.auto_update div[data-player-name='" + values.username + "']").append($("<span></span>").text(values.response));
+    showInfo(values + " has accepted the invitation.");
     console.log(values);
     //$("div.auto_update [data-player-name]")
 }
@@ -162,11 +169,13 @@ function gameInvitation(values)
 {
     $("#gameInvitationTitle").text(values.initiator + " has invited you to a game.");
 
-    $("#gameSummary").append(values.players.reduce(function(output, player)
+    $("#gameSummary").empty().append(values.players.reduce(function(output, player)
     {
         return output.append($("<div data-player-name='" + player +"' class='gamePlayer'></div>").text(player));
 
     }, $("<div id='gamePlayers' class='auto_update'></div>"))).attr("data-game-id", values.gameId);
+
+    $("#gamePlayers div[data-player-name='" + values.initiator + "']").append($("<span id='gameInitiator'></span>").text("Game Initiator"));
 
     $("#gameInvitation").modal("show");
 }
