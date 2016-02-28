@@ -1,0 +1,3 @@
+Assign the game Id to the web socket, so then it is not necessary to for the client to be aware of the game ID in the game invitation step.
+
+Include the webSocket for players in the players object of a CardGame rather than having a separate Map.

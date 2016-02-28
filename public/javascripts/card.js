@@ -146,6 +146,8 @@ function performAction(message)
 
         g_actionMap.set(Constants.AcceptInvitation, acceptedInvitation);
 
+        g_actionMap.set(Constants.StartGame, startGame);
+
         g_actionMap.set(Constants.Information, function (value)
         {
             console.log(value);
@@ -155,6 +157,12 @@ function performAction(message)
 
     var action = g_actionMap.get(message.type);
     action(message.value);
+}
+
+function startGame(values)
+{
+    document.cookie = [Constants.GameId, values.gameId].join("=");
+    window.location = "/game/multiPlayer";
 }
 
 function acceptedInvitation(values)

@@ -167,6 +167,7 @@
 
             });
 
+            // TODO: consolidate the click handlers for the reject button
             $("#rejectBtn").on("click", function()
             {
                 $("#gameInvitation").modal("hide");
@@ -175,15 +176,12 @@
 
             $("#acceptBtn").on("click", function()
             {
-                document.cookie = Constants.GameId + "=" + $("#gameSummary").attr("data-game-id");
-                send(Message(Constants.AcceptInvitation));
+                sendGameInvitationResponse(Constants.AcceptInvitation);
             });
 
             $("#rejectBtn").on("click", function()
             {
-                document.cookie = Constants.GameId + "=" + $("#gameSummary").attr("data-game-id");
-                send(Message(Constants.RejectInvitation));
-                removeCookie(Constants.GameId);
+                sendGameInvitationResponse(Constants.RejectInvitation);
             });
 
             $("#onlinePlayerSearch").on("keyup", function()
@@ -197,6 +195,13 @@
             renderOnlineUsersTable(onlinePlayers);
 
         });
+
+        function sendGameInvitationResponse(response)
+        {
+            document.cookie = [Constants.GameId, $("#gameSummary").attr("data-game-id")].join("=");
+            send(Message(response));
+            removeCookie(Constants.GameId);
+        }
 
         function closeBtnParameters(id)
         {

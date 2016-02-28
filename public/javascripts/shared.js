@@ -52,6 +52,7 @@ var Constants =
     ChatMessage: "ChatMessage",
     UserInformation: "UserInformation",
     GameTypeNone: "None",
+    StartGame: "StartGame",
     UserLoggedOut: "UserLoggedOut",
     WEB_SOCKET_SERVER_PORT: 8080
 };

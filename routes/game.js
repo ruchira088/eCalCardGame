@@ -13,18 +13,33 @@ var Card = myObjects.Card;
 var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
 var game;
 
-
-var singlePlayerMaps = new Map();
-
+// <gameId, CardGame>
 var gameMaps = new Map();
 
-var webSocketMap = new Map();
 var actionMap;
 
+// <username, webSocket>
 var onlinePlayers = new Map();
 
+// <username, token>
+var playerTokens = (function()
+{
+    var tokenMap = new Map();
+
+    tokenMap.addPlayer = function(username)
+    {
+        tokenMap.set(username, createRandomString());
+    };
+
+    tokenMap.getCookie = function(username)
+    {
+        return [username, tokenMap.get(username)].join("&");
+    };
+
+    return tokenMap;
+})();
+
 // TODO Remove soon
-var onlineUsersInfo = new Map();
 var onlineUsers = [];
 myObjects.extendArray(onlineUsers);
 
@@ -33,6 +48,7 @@ function GamePlayers()
 {
     this.currentPosition = 0;
     this.players = [];
+    this.pendingInvitationList = [];
 
     this.remove = function(username)
     {
@@ -57,22 +73,43 @@ function GamePlayers()
 
     this.addPlayers = function(players)
     {
-        this.players = players.reduce(function(gamePlayers, player)
+        players.forEach(function(player)
         {
-            gamePlayers.push({username: player, token: createRandomString()});
-            return gamePlayers;
-        }, this.players);
+            this.addPlayer(player);
+        }.bind(this));
+    };
+
+    this.setPendingInvitationList = function(playerList)
+    {
+        this.pendingInvitationList = playerList.slice();
+    };
+
+    this.removeFromPendingInvitationList = function(playerName)
+    {
+        this.pendingInvitationList = this.pendingInvitationList.filter(function(username)
+        {
+            return playerName != username;
+        });
+    };
+
+    this.hasPendingInvitations = function()
+    {
+      return this.pendingInvitationList.length != 0;
     };
 
     this.putIfAbsent = function(username)
     {
       if(!this.get(username))
       {
-          this.players.push({username: username, token: createRandomString()});
+          this.addPlayer(username);
           return true;
       }
-
         return false;
+    };
+
+    this.addPlayer = function(username)
+    {
+        this.players.push({username: username});
     };
 
     this.nextUser = function()
@@ -105,22 +142,12 @@ function CardGame(game, id)
 
         return gamePlayers;
     })();
+
+    //<username, webSocket>
     this.webSocketMap = new Map();
     this.locked = false;
 }
 
-onlineUsersInfo.getCookieInformation = function(user)
-{
-    var info = null;
-    var value = this.get(user);
-
-    if(typeof value != "undefined")
-    {
-        info = user + "&" + value.token;
-    }
-
-    return info;
-};
 wss.on("connection", function (ws)
 {
     ws.sendValue = function (value) {
@@ -169,7 +196,7 @@ wss.on("connection", function (ws)
         } else
         {
             onlinePlayers.delete(ws.username);
-            broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
+            //broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
         }
 
         //webSocketMap.delete(ws.username);
@@ -234,8 +261,10 @@ function getActionMap()
 
             var multiPlayerGame = new CardGame(new Game(allPlayers), createRandomString());
             multiPlayerGame.webSocketMap.set(webSocket.username, webSocket);
-            multiPlayerGame.game.dealCards();
+            multiPlayerGame.players.setPendingInvitationList(players);
+            //multiPlayerGame.game.dealCards();
             gameMaps.set(multiPlayerGame.id, multiPlayerGame);
+            var gameInitiator = webSocket.username;
 
             players.forEach(function(playerName)
             {
@@ -243,14 +272,21 @@ function getActionMap()
                 var webSocket = onlinePlayers.get(playerName);
                 multiPlayerGame.webSocketMap.set(playerName, webSocket);
                 webSocket.sendValue({type: Constants.GameInvitation, value:{gameId: multiPlayerGame.id,
-                    initiator: webSocket.username, players: allPlayers}});
+                    initiator: gameInitiator, players: allPlayers}});
             });
 
         });
 
         actionMap.set(Constants.AcceptInvitation, function(cardGame, values, webSocket)
         {
-            broadcast({type: Constants.AcceptInvitation, value: {username: webSocket.username, response: Constants.AcceptInvitation}}, cardGame.webSocketMap)
+            broadcast({type: Constants.AcceptInvitation, value: {username: webSocket.username, response: Constants.AcceptInvitation}}, cardGame.webSocketMap);
+            cardGame.players.removeFromPendingInvitationList(webSocket.username);
+
+            if(!cardGame.players.hasPendingInvitations())
+            {
+                cardGame.game.dealCards();
+                broadcast({type: Constants.StartGame, value: {gameId: cardGame.id}}, cardGame.webSocketMap);
+            }
         });
 
         actionMap.set(Constants.RejectInvitation, function(cardGame, value, webSocket)
@@ -383,11 +419,12 @@ function getActionMap()
 
             cardGame.players.nextUser();
             broadcast({type: Constants.UpdateDrawnCard, value: card}, cardGame.webSocketMap);
+            broadcast({type: Constants.ActiveUser, value: cardGame.players.getCurrentUser()}, cardGame.webSocketMap);
 
-            if(cardGame.gameType === Constants.MultiPlayer)
-            {
-                broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()}, cardGame.webSocketMap);
-            }
+            //if(cardGame.type === Constants.MultiPlayer)
+            //{
+            //    broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()}, cardGame.webSocketMap);
+            //}
         });
 
         //actionMap.set(Constants.CardDrop, function (value, webSocket, message)
@@ -467,46 +504,46 @@ function cardPickUp(cardGame, value, webSocket)
     webSocket.sendValue({type: event, value: card});
 }
 
-onlineUsers.remove = function(user)
-{
-    var index = onlineUsers.indexOf(user);
-
-    if(index >= 0)
-    {
-        onlineUsers.splice(index, 1);
-    }
-
-};
-
-onlineUsers.putIfAbsent = function (value)
-{
-    if (this.indexOf(value) === -1)
-    {
-        this.push(value);
-        onlineUsersInfo.set(value, {token: createRandomString()});
-        return true;
-    }
-
-    return false;
-};
-
-onlineUsers.currentPosition = 0;
-
-onlineUsers.nextUser = function ()
-{
-    this.currentPosition++;
-
-    if(this.length <= this.currentPosition)
-    {
-        this.currentPosition = 0;
-    }
-
-    return onlineUsers[this.currentPosition];
-};
-
-onlineUsers.getCurrentUser = function () {
-    return onlineUsers[this.currentPosition];
-};
+//onlineUsers.remove = function(user)
+//{
+//    var index = onlineUsers.indexOf(user);
+//
+//    if(index >= 0)
+//    {
+//        onlineUsers.splice(index, 1);
+//    }
+//
+//};
+//
+//onlineUsers.putIfAbsent = function (value)
+//{
+//    if (this.indexOf(value) === -1)
+//    {
+//        this.push(value);
+//        onlineUsersInfo.set(value, {token: createRandomString()});
+//        return true;
+//    }
+//
+//    return false;
+//};
+//
+//onlineUsers.currentPosition = 0;
+//
+//onlineUsers.nextUser = function ()
+//{
+//    this.currentPosition++;
+//
+//    if(this.length <= this.currentPosition)
+//    {
+//        this.currentPosition = 0;
+//    }
+//
+//    return onlineUsers[this.currentPosition];
+//};
+//
+//onlineUsers.getCurrentUser = function () {
+//    return onlineUsers[this.currentPosition];
+//};
 
 
 router.get("/login", function (request, response)
@@ -565,17 +602,17 @@ function delegateRequest(request, response, success, fail)
 
     if(typeof userInfo != "undefined")
     {
-        var user = getUserInfoFromCookie(userInfo);
+        var clientSideUser = getUserInfoFromCookie(userInfo);
 
-        var info = onlineUsersInfo.get(user.username);
+        var serverSidePlayerToken = playerTokens.get(clientSideUser.username);
 
-        if(typeof info != "undefined" && info.token === user.token)
+        if(typeof serverSidePlayerToken != "undefined" && serverSidePlayerToken === clientSideUser.token)
         {
-            success(user.username, request, response);
+            success(clientSideUser.username, request, response);
         }
         else
         {
-            fail(user.username, request, response);
+            fail(clientSideUser.username, request, response);
         }
     }
     else
@@ -588,7 +625,8 @@ router.get("/home", function (request, response)
 {
     delegateRequest(request, response, function success(username)
     {
-        response.render("home", {user: username, onlineUsers: onlineUsers.slice().sort(), game: game});
+        response.clearCookie(Constants.GameId);
+        response.render("home", {user: username, onlineUsers: Array.from(onlinePlayers.keys()).sort(), game: game});
     });
 });
 
@@ -657,21 +695,35 @@ router.get("/singlePlayer", function(request, response)
 {
     delegateRequest(request, response, function(username, request, response)
     {
-        var game = gameMaps.get(request.cookies[Constants.GameId]);
+        var cardGame = gameMaps.get(request.cookies[Constants.GameId]);
 
-        game = game || (function()
+        cardGame = cardGame || (function()
             {
                 var singlePlayerGame = new CardGame(new Game([username]), createRandomString());
                 singlePlayerGame.game.dealCards();
                 gameMaps.set(singlePlayerGame.id, singlePlayerGame);
                 response.cookie(Constants.GameId, singlePlayerGame.id);
-                return singlePlayerGame.game;
+                return singlePlayerGame;
             }
             )();
 
-        response.render("game", {player: game.getPlayer(username), type: Constants.SinglePlayer,
-            drawnCards: game.getDrawnCards(), onlineUsers: [username]});
+        response.render("game", {player: cardGame.game.getPlayer(username), type: Constants.SinglePlayer,
+            drawnCards: cardGame.game.getDrawnCards(), onlineUsers: [username]});
+    });
+});
 
+router.get("/multiPlayer", function(request, response)
+{
+    delegateRequest(request, response, function(username, request, response)
+    {
+            var game = gameMaps.get(request.cookies[Constants.GameId]).game;
+
+            response.render("game", {
+                player: game.getPlayer(username),
+                type: Constants.MultiPlayer,
+                drawnCards: game.getDrawnCards(),
+                onlineUsers: Array.from(game.getPlayers().keys())
+            });
     });
 });
 
@@ -722,14 +774,10 @@ router.post("/home", function (request, response)
         requestDispatcher.loginUser(user, next);
     }
 
-    function logUser(user)
+    function logUser(username)
     {
-        if(onlineUsers.putIfAbsent(user))
-        {
-            // broadcast({type: Constants.LoggedInUser, value: user});
-        }
-
-        response.cookie(Constants.UserInformation, onlineUsersInfo.getCookieInformation(user));
+        playerTokens.addPlayer(username);
+        response.cookie(Constants.UserInformation, playerTokens.getCookie(username));
     }
 });
 
@@ -754,11 +802,6 @@ router.post("/home", function (request, response)
 //    console.log(pickedUpCard);
 //    response.send(pickedUpCard);
 //});
-
-function send(user, message) {
-    var socket = webSocketMap.get(user);
-    socket.sendValue(message);
-}
 
 function broadcast(message, webSocketMap) {
     webSocketMap.forEach(function (socket) {
