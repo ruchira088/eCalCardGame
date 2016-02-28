@@ -25,7 +25,7 @@
         <% } %>
     </table>
     <div id="chatArea">
-        <% include templates/chatroom.ejs %>
+        <% // include templates/chatroom.ejs %>
     </div>
     <div>
         <a class="btn btn-primary btn-lg" href="/game/singlePlayer">Single Player</a>
@@ -35,17 +35,6 @@
 
         <div id="modalDialogContainer">
         </div>
-
-        <% if(!game)
-        {%>
-        <form action="/game/" method="POST">
-            <input name="user" value="<%= user %>" type="hidden">
-            <input id="startGameBtn" type="submit" value="Start Game">
-        </form>
-        <%} else
-        {%>
-            <div>A game is in progress</div>
-        <%}%>
     </div>
     <script id="modalDialogTemplate" type="text/x-handlebars-template">
         <div class="modal fade" id="{{id}}" role="dialog">
