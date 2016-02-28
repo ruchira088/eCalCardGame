@@ -74,7 +74,7 @@ function createUser(user, callback)
 
     sendRequest(options, user, function(data)
     {
-        callback(data.result == "success");
+        callback(data);
     });
 }
 

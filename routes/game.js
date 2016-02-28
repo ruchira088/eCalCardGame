@@ -808,4 +808,7 @@ function createRandomString(strength)
 }
 
 
-module.exports = router;
+module.exports = {
+    router: router,
+    playerTokens: playerTokens
+};

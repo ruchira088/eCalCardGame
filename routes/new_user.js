@@ -1,6 +1,8 @@
-var express = require('express');
+var router = require('express').Router();
+
+var Constants = require("../public/javascripts/shared").Constants;
 var requestDispatcher = require('../requestDispatcher');
-var router = express.Router();
+var playerTokens = require("./game").playerTokens;
 
 router.get("/", function(request, response){
     response.render("new_user");
@@ -8,9 +10,13 @@ router.get("/", function(request, response){
 
 router.post("/", function(request, response)
 {
-    requestDispatcher.createUser(request.body, function()
+    requestDispatcher.createUser(request.body, function(data)
     {
-        response.send("new_user");
+        var username = data.document.username;
+
+        playerTokens.addPlayer(username);
+        response.cookie(Constants.UserInformation, playerTokens.getCookie(username));
+        response.redirect("/game/home");
     });
 });
 
