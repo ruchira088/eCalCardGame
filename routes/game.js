@@ -675,22 +675,6 @@ function facebookLogin(accessToken, callback)
     });
 }
 
-router.post("/home", function(request, response, next)
-{
-    if(request.body[Constants.Action] == Constants.PlayAgain)
-    {
-        if(game)
-        {
-            game = null;
-        }
-
-        response.redirect("home");
-    } else
-    {
-        next();
-    }
-});
-
 router.get("/singlePlayer", function(request, response)
 {
     delegateRequest(request, response, function(username, request, response)

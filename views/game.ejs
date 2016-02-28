@@ -59,9 +59,7 @@
                 <div class="modal-body">
                 </div>
                 <div class="modal-footer">
-                    <form id="endGameFrm" action="/game/home" method="post">
-                        <button id="playAgainBtn" type="submit" name="<%= Constants.Action %>" value="<%= Constants.PlayAgain %>">OK</button>
-                    </form>
+                        <button id="backToHomeBtn">OK</button>
                 </div>
             </div>
 
@@ -100,6 +98,12 @@
                             })
                         }
                 );
+
+                $("#backToHomeBtn").on("click", function()
+                {
+                    removeCookie(Constants.GameId);
+                    window.location = "/game/home";
+                });
             }
     );
 </script>
