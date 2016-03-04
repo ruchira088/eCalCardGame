@@ -11,19 +11,21 @@
 <div id="homepage" class="container">
     <h1 id="greeting">Hi <%= user %>,</h1>
     <a href="/game/logout" id="logout">Logout</a>
-    <table id="players">
-        <tr>
-            <th>Online Players</th>
-        </tr>
-        <%
-            for(var i = 0; i < onlineUsers.length; i++)
-            {
-        %>
-        <tr>
-            <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
-        </tr>
-        <% } %>
-    </table>
+    <div id="onlinePlayersContainer">
+        <table id="players">
+            <tr>
+                <th>Online Players</th>
+            </tr>
+            <%
+                for(var i = 0; i < onlineUsers.length; i++)
+                {
+            %>
+            <tr>
+                <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
     <div id="chatArea">
         <% // include templates/chatroom.ejs %>
     </div>
@@ -36,6 +38,21 @@
         <div id="modalDialogContainer">
         </div>
     </div>
+    <script id="onlinePlayersTableTemplate" type="text/x-handlebars-template">
+        <table id="players">
+            <thead>
+                <tr>
+                    <th>Online Players</th>
+                </tr>
+            </thead>
+            {{{ body }}}
+        </table>
+    </script>
+    <script id="onlinePlayerPlaceholder" type="text/x-handlebars-template">
+        <tr>
+            <td class="player">{{{ playerName }}}</td>
+        </tr>
+    </script>
     <script id="modalDialogTemplate" type="text/x-handlebars-template">
         <div class="modal fade" id="{{id}}" role="dialog">
             <div class="modal-dialog">
@@ -72,35 +89,15 @@
         <div id='onlinePlayersList'>
         </div>
     </script>
-    <!--<script id="closeBtnTemplate" type="text/x-handlebars-template">-->
-        <!--<button type="button" class="btn btn-default" data-dismiss="modal">-->
-            <!--Close-->
-        <!--</button>-->
-    <!--</script>-->
     <script id="btnTemplate" type="text/x-handlebars-template">
         <button id="{{id}}" type="button" class="btn{{classes}}" {{{attributes}}}>{{label}}</button>
     </script>
     <script>
         initWebSocket();
 
-        var selectedPlayers = {
-            players: [],
-            add: function(value)
-            {
-                this.players.push(value);
-                this.players.sort();
-            },
-            remove: function(value)
-            {
-                this.players = this.players.filter(function(val)
-                {
-                    return val != value;
-                });
-            }
-        }
-
-        const onlinePlayers = <%- JSON.stringify(onlineUsers) %>;
-        //const onlinePlayers = ["apple", "ball", "cat", "dog", "fish", "elephant"];
+        var selectedPlayers = createdSortedPlayersArray();
+        var onlinePlayersTableTemplate = Handlebars.compile($("#onlinePlayersTableTemplate").html());
+        var onlinePlayerEntry = Handlebars.compile($("#onlinePlayerPlaceholder").html());
 
         $(document).ready(function()
         {
@@ -175,13 +172,11 @@
 
             $("#onlinePlayerSearch").on("keyup", function()
             {
-                renderOnlineUsersTable(onlinePlayers.filter(function(player)
+                renderPlayerInvitationTable(g_onlineUsers.players.filter(function(player)
                 {
                     return player.indexOf($(this).val()) != -1;
                 }.bind(this)));
             });
-
-            renderOnlineUsersTable(onlinePlayers);
 
         });
 
@@ -202,11 +197,38 @@
             }
         }
 
-        function renderOnlineUsersTable(onlineUsers)
+        function renderOnlinePlayersTable(onlineUsers)
+        {
+            const username = getUsername();
+
+            var onlinePlayerTable = onlinePlayersTableTemplate({
+                body: (function()
+                {
+                    return onlineUsers.filter(function(playerName)
+                    {
+                        return username != playerName;
+                    }).reduce(function(markup, playerName)
+                    {
+                        $(markup).append(onlinePlayerEntry({playerName: playerName}));
+
+                        return markup;
+                    }, $("<tbody></tbody>"));
+                })().html()
+            });
+
+            $("#onlinePlayersContainer").empty().append(onlinePlayerTable);
+        }
+
+        function renderPlayerInvitationTable(onlineUsers)
         {
             var playerList = $("#onlinePlayersList").empty();
 
-            onlineUsers.forEach(function(user)
+            const username = getUsername();
+
+            onlineUsers.filter(function(user)
+            {
+                return user != username;
+            }).forEach(function(user)
             {
                 playerList.append($("<div class='checkbox'></div>").
                     append($("<label></label>").

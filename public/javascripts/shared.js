@@ -45,6 +45,7 @@ var Constants =
     SinglePlayer: "SinglePlayer",
     MultiPlayer: "MultiPlayer",
     GameId: "GameId",
+    OnlineUsers: "OnlineUsers",
     HomeLogin: "HomeLogin",
     GameInvitation: "GameInvitation",
     RejectInvitation: "RejectInvitation",
@@ -57,6 +58,9 @@ var Constants =
     WEB_SOCKET_SERVER_PORT: 8080
 };
 
-if (typeof module != "undefined") {
-    module.exports = {Constants: Constants, Card: Card};
+if (typeof module != "undefined")
+{
+    module.exports = {
+        Constants: Constants,
+        Card: Card};
 }

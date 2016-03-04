@@ -251,6 +251,7 @@ function getActionMap()
         {
             webSocket.username = value.username;
             onlinePlayers.set(webSocket.username, webSocket);
+            webSocket.sendValue({type: Constants.OnlineUsers, value: {onlineUsers: Array.from(onlinePlayers.keys())}});
             sendToOthers({type: Constants.LoggedInUser, value: webSocket.username}, webSocket, onlinePlayers);
         });
 

@@ -1,6 +1,27 @@
+const COOKIE_DELIMITER = ";";
+const COOKIE_KEY_VALUE_SEPARATOR = "=";
+const USER_INFORMATION_COOKIE_SEPARATOR = "%26";
+
 var g_actionMap;
 
 var g_webSocket;
+
+const g_onlineUsers = (function()
+{
+    var sortedArray = createdSortedPlayersArray();
+
+    // TODO modify createdSortedPlayersArray to NOT render in initialize
+    sortedArray.updateFn = function()
+    {
+        renderOnlinePlayersTable(sortedArray.players);
+
+        // TODO Only render this when the multiplayer button is clicked
+        renderPlayerInvitationTable(sortedArray.players);
+    };
+
+    return sortedArray;
+})();
+
 
 function verifyAndSubmit(form)
 {
@@ -42,9 +63,19 @@ function declareVictory()
 /**  Get the username */
 function getUsername()
 {
-    var usernameElement = document.getElementById("username");
+    return document.cookie.split(COOKIE_DELIMITER).reduce(function(username, cookie)
+    {
+        if(!username)
+        {
+            var cookieEntry = cookie.trim().split(COOKIE_KEY_VALUE_SEPARATOR);
 
-    return usernameElement.getAttribute("data-username");
+            if(cookieEntry[0] === Constants.UserInformation)
+            {
+                username = cookieEntry[1].split(USER_INFORMATION_COOKIE_SEPARATOR)[0];
+            }
+        }
+        return username;
+    }, null);
 }
 
 function pickUpCard(card)
@@ -143,6 +174,11 @@ function performAction(message)
         g_actionMap.set(Constants.UserLoggedOut, userLoggedOut);
 
         g_actionMap.set(Constants.GameInvitation, gameInvitation);
+
+        g_actionMap.set(Constants.OnlineUsers, function(values)
+        {
+            g_onlineUsers.initialize(values.onlineUsers);
+        });
 
         g_actionMap.set(Constants.AcceptInvitation, acceptedInvitation);
 
@@ -394,11 +430,13 @@ function highlightActivePlayer(playerId)
     var activePlayer = document.querySelector("#onlinePlayers #" + playerId.replace(" ", ""));
     activePlayer.setAttribute("data-active-player", "true");
 }
+
 /** Add a user to the "online user table" */
 function addToOnlineUserTable(loggedInUser)
 {
-    $("#players").append($("<tr></tr>").html($("<td id='"+ loggedInUser+"' class='player'></td>").html(loggedInUser)));
+    //$("#players").append($("<tr></tr>").html($("<td id='"+ loggedInUser+"' class='player'></td>").html(loggedInUser)));
     showInfo(loggedInUser + " logged in.");
+    g_onlineUsers.add(loggedInUser);
 }
 
 /** Send a message to the web socket server */
@@ -427,6 +465,39 @@ function initWebSocket(type)
     };
 }
 
+function createdSortedPlayersArray()
+{
+    return {
+        players: [],
+        updateFn: function()
+        {
+
+        },
+        initialize: function(values)
+        {
+            this.players = values;
+            this.players.sort();
+            this.updateFn();
+        },
+        add: function(value)
+        {
+            if(this.players.indexOf(value) === -1)
+            {
+                this.players.push(value);
+                this.players.sort();
+                this.updateFn();
+            }
+        },
+        remove: function(value)
+        {
+            this.players = this.players.filter(function(val)
+            {
+                return val != value;
+            });
+            this.updateFn();
+        }
+    }
+}
 
 
 function createCard(value)
