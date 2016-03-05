@@ -17,13 +17,15 @@
                 <th>Online Players</th>
             </tr>
             <%
-                for(var i = 0; i < onlineUsers.length; i++)
+                players.forEach(function(player)
                 {
             %>
-            <tr>
-                <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
-            </tr>
-            <% } %>
+                    <tr>
+                        <td class="player <%= player.status %>"><%= player.playerName %></td>
+                    </tr>
+            <%
+                });
+            %>
         </table>
     </div>
     <div id="chatArea">
@@ -31,7 +33,7 @@
     </div>
     <div>
         <a class="btn btn-primary btn-lg" href="/game/singlePlayer">Single Player</a>
-        <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#multiPlayerDialog">
+        <button id="multiPlayerBtn" type="button" class="btn btn-info btn-lg" data-toggle="modal">
             MultiPlayer
         </button>
 
@@ -50,7 +52,7 @@
     </script>
     <script id="onlinePlayerPlaceholder" type="text/x-handlebars-template">
         <tr>
-            <td class="player">{{{ playerName }}}</td>
+            <td class="player {{status}}">{{{ playerName }}}</td>
         </tr>
     </script>
     <script id="modalDialogTemplate" type="text/x-handlebars-template">
@@ -95,7 +97,25 @@
     <script>
         initWebSocket();
 
-        var selectedPlayers = createdSortedPlayersArray();
+        var selectedPlayers = {
+            players: [],
+            add: function(playerName)
+            {
+                this.players.push(playerName);
+            },
+            remove: function(playerName)
+            {
+                this.players = this.players.filter(function(name)
+                {
+                   return playerName != name;
+                });
+            },
+            isIncluded: function(playerName)
+            {
+                return this.players.indexOf(playerName) != -1;
+            }
+        };
+
         var onlinePlayersTableTemplate = Handlebars.compile($("#onlinePlayersTableTemplate").html());
         var onlinePlayerEntry = Handlebars.compile($("#onlinePlayerPlaceholder").html());
 
@@ -170,6 +190,12 @@
                 sendGameInvitationResponse(Constants.RejectInvitation);
             });
 
+            $("#multiPlayerBtn").on("click", function()
+            {
+                renderPlayerInvitationTable(g_onlineUsers.players);
+                $("#multiPlayerDialog").modal("show");
+            });
+
             $("#onlinePlayerSearch").on("keyup", function()
             {
                 renderPlayerInvitationTable(g_onlineUsers.players.filter(function(player)
@@ -204,12 +230,16 @@
             var onlinePlayerTable = onlinePlayersTableTemplate({
                 body: (function()
                 {
-                    return onlineUsers.filter(function(playerName)
+                    return onlineUsers.filter(function(player)
                     {
-                        return username != playerName;
-                    }).reduce(function(markup, playerName)
+                        return username != player.playerName;
+
+                    }).reduce(function(markup, player)
                     {
-                        $(markup).append(onlinePlayerEntry({playerName: playerName}));
+                        $(markup).append(onlinePlayerEntry({
+                            playerName: player.playerName,
+                            status: player.status
+                        }));
 
                         return markup;
                     }, $("<tbody></tbody>"));
@@ -227,7 +257,10 @@
 
             onlineUsers.filter(function(user)
             {
-                return user != username;
+                return user.status === Constants.InHomePage && user.playerName != username;
+            }).map(function(user)
+            {
+                return user.playerName;
             }).forEach(function(user)
             {
                 playerList.append($("<div class='checkbox'></div>").
@@ -241,7 +274,7 @@
                         {
                             selectedPlayers.remove(user);
                         }
-                    }).prop("checked", selectedPlayers.players.indexOf(user) != -1)).
+                    }).prop("checked", selectedPlayers.isIncluded(user))).
                     append(user)));
             });
         }

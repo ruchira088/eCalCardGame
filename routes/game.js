@@ -4,14 +4,14 @@ var requestDispatcher = require('../requestDispatcher');
 var WebSocketServer = require('ws').Server;
 var myObjects = require('../myObjects');
 
-var Constants = require('../public/javascripts/shared').Constants;
+var Shared = require('../public/javascripts/shared');
+var Constants = Shared.Constants;
 
 const AUTO_WIN = false;
 
 var Game = myObjects.CardGame;
 var Card = myObjects.Card;
 var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
-var game;
 
 // <gameId, CardGame>
 var gameMaps = new Map();
@@ -20,6 +20,9 @@ var actionMap;
 
 // <username, webSocket>
 var onlinePlayers = new Map();
+
+// <username, webSocket>
+var gamePlayers = new Map();
 
 // <username, token>
 var playerTokens = (function()
@@ -193,11 +196,13 @@ wss.on("connection", function (ws)
         if(ws.gameId)
         {
             gameMaps.get(ws.gameId).webSocketMap.delete(ws.username);
+            gamePlayers.delete(ws.username);
         } else
         {
             onlinePlayers.delete(ws.username);
-            //broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
         }
+
+        broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
 
         //webSocketMap.delete(ws.username);
         //onlineUsers.remove(ws.username);
@@ -224,8 +229,6 @@ function getActionMap()
 {
     if (!actionMap)
     {
-        var locked = false;
-
         var isCurrentUser = function (cardGame, username)
         {
             var currentUser = false;
@@ -245,14 +248,33 @@ function getActionMap()
             webSocket.username = value.username;
             webSocket.gameId = cardGame.id;
             cardGame.webSocketMap.set(webSocket.username, webSocket);
+            gamePlayers.set(webSocket.username, webSocket);
+            broadcast({
+                type: Constants.LoggedInUser,
+                value: {
+                    playerName: webSocket.username,
+                    status: Constants.InGame
+                }
+            }, onlinePlayers);
         });
 
         actionMap.set(Constants.HomeLogin, function(cardGame, value, webSocket)
         {
             webSocket.username = value.username;
+            broadcast({
+                type: Constants.LoggedInUser,
+                value: {
+                    playerName: webSocket.username,
+                    status: Constants.InHomePage
+                }
+            }, onlinePlayers);
             onlinePlayers.set(webSocket.username, webSocket);
-            webSocket.sendValue({type: Constants.OnlineUsers, value: {onlineUsers: Array.from(onlinePlayers.keys())}});
-            sendToOthers({type: Constants.LoggedInUser, value: webSocket.username}, webSocket, onlinePlayers);
+            webSocket.sendValue({
+                type: Constants.OnlineUsers,
+                value: {
+                    onlineUsers: getOnlineUsersAndPlayers()
+                }
+            });
         });
 
         actionMap.set(Constants.GameInvitation, function(cardGame, players, webSocket)
@@ -395,7 +417,7 @@ function getActionMap()
 
                 if(AUTO_WIN)
                 {
-                    var playerCards = game.getPlayer(webSocket.username).showCards();
+                    var playerCards = player.showCards();
                     requestDispatcher.hasWinningCards({cards: playerCards}, function (outcome) {
                         if (outcome.result) {
                             webSocket.sendValue({
@@ -579,21 +601,21 @@ function getUserInfoFromCookie(value)
     return {username: values[0], token: values[1]};
 }
 
-router.post("/", function (request, response) {
-    var user = request.body.user;
-
-    if (!game)
-    {
-        game = new Game(onlineUsers);
-        onlineUsers.randomise();
-        game.dealCards();
-    }
-
-    var player = game.getPlayer(user);
-    var drawnCards = game.getDrawnCards();
-
-    response.render("game", {player: player, drawnCards: drawnCards, type: Constants.MultiPlayer, onlineUsers: onlineUsers});
-});
+//router.post("/", function (request, response) {
+//    var user = request.body.user;
+//
+//    if (!game)
+//    {
+//        game = new Game(onlineUsers);
+//        onlineUsers.randomise();
+//        game.dealCards();
+//    }
+//
+//    var player = game.getPlayer(user);
+//    var drawnCards = game.getDrawnCards();
+//
+//    response.render("game", {player: player, drawnCards: drawnCards, type: Constants.MultiPlayer, onlineUsers: onlineUsers});
+//});
 
 function delegateRequest(request, response, success, fail)
 {
@@ -613,7 +635,7 @@ function delegateRequest(request, response, success, fail)
         }
         else
         {
-            fail(clientSideUser.username, request, response);
+            fail(null, request, response);
         }
     }
     else
@@ -624,12 +646,40 @@ function delegateRequest(request, response, success, fail)
 
 router.get("/home", function (request, response)
 {
-    delegateRequest(request, response, function success(username)
-    {
+    delegateRequest(request, response, function success(username) {
         response.clearCookie(Constants.GameId);
-        response.render("home", {user: username, onlineUsers: Array.from(onlinePlayers.keys()).sort(), game: game});
+        response.render("home", {
+            user: username,
+            players: getOnlineUsersAndPlayers().filter(function (player) {
+                return player.playerName != username;
+            })
+        });
     });
 });
+
+function getOnlineUsersAndPlayers()
+{
+    var players = Array.from(onlinePlayers.keys()).map(function(player)
+    {
+        return {
+            playerName: player,
+            status: Constants.InHomePage
+        };
+    });
+
+    return Array.from(gamePlayers.keys()).reduce(function(players, player)
+    {
+        players.push({
+            playerName: player,
+            status: Constants.InGame
+        });
+
+        return players;
+    }, players).sort(function(player_1, player_2)
+    {
+        return player_1.playerName.localeCompare(player_2.playerName);
+    });
+}
 
 router.get("/logout", function (request, response)
 {

@@ -21,6 +21,10 @@ var Constants =
 {
     Login: "Login",
     LoggedInUser: "LoggedInUser",
+    InGame: "InGame",
+    InHomePage: "InHomePage",
+    LoggedInGamer: "LoggedInGamer",
+    LoggedOutGamer: "LoggedOutGamer",
     Information: "Info",
     DeckCardPickUp: "DeckCardPickUp",
     DrawnCardPickUp: "DrawnCardPickUp",
@@ -62,5 +66,6 @@ if (typeof module != "undefined")
 {
     module.exports = {
         Constants: Constants,
-        Card: Card};
+        Card: Card
+    };
 }

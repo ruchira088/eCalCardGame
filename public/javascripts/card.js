@@ -8,20 +8,54 @@ var g_webSocket;
 
 const g_onlineUsers = (function()
 {
-    var sortedArray = createdSortedPlayersArray();
-
-    // TODO modify createdSortedPlayersArray to NOT render in initialize
-    sortedArray.updateFn = function()
+    function updateFn()
     {
-        renderOnlinePlayersTable(sortedArray.players);
+        renderOnlinePlayersTable(g_onlineUsers.players);
+    }
 
-        // TODO Only render this when the multiplayer button is clicked
-        renderPlayerInvitationTable(sortedArray.players);
+    return {
+        players: [],
+        initialize: function(onlineUsers)
+        {
+            this.players = onlineUsers;
+        },
+        sort: function()
+        {
+            this.players = this.players.sort(function(player_1, player_2)
+            {
+                return player_1.playerName.localeCompare(player_2.playerName);
+            });
+        },
+        add: function(player)
+        {
+            var entry = this.players.find(function(entry)
+            {
+                return entry.playerName === player.playerName;
+            });
+
+            if(!entry)
+            {
+                this.players.push(player);
+            }
+            else
+            {
+                entry.status = player.status;
+            }
+
+            this.sort();
+            updateFn();
+        },
+        remove: function(playerName)
+        {
+            this.players = this.players.filter(function(player)
+            {
+                return player.playerName != playerName;
+            });
+            updateFn();
+        }
     };
 
-    return sortedArray;
 })();
-
 
 function verifyAndSubmit(form)
 {
@@ -54,7 +88,7 @@ function submitForm(form)
     request.send("username=" + username + "&password=" + password + "&verify=true");
 }
 
-function declareVictory() 
+function declareVictory()
 {
     send(Message(Constants.DeclareVictory));
 }
@@ -136,7 +170,7 @@ function performAction(message)
     {
         g_actionMap = new Map();
 
-        g_actionMap.set(Constants.LoggedInUser, addToOnlineUserTable);
+        g_actionMap.set(Constants.LoggedInUser, userLoggedIn);
 
         g_actionMap.set(Constants.DeckCardPickUp, showDeckCard);
 
@@ -195,6 +229,11 @@ function performAction(message)
     action(message.value);
 }
 
+function loggedInGamer(values)
+{
+
+}
+
 function startGame(values)
 {
     document.cookie = [Constants.GameId, values.gameId].join("=");
@@ -231,8 +270,7 @@ function opponentFalseVictoryAnnouncement(message)
 
 function userLoggedOut(loggedOutUser)
 {
-    showInfo(loggedOutUser + " has logged out.");
-    removeUserFromOnlineTableMarkup(loggedOutUser);
+    g_onlineUsers.remove(loggedOutUser);
 }
 
 function removeUserFromOnlineTableMarkup(username)
@@ -296,73 +334,6 @@ function falseVictory(cards)
 
     $('#winningCards').modal('show');
 }
-
-
-
-//function showWinningCards(value)
-//{
-//    var header = "<div id='winnerHeader'>" + value.winner + " has WON</div>";
-//
-//    var modalHeader = document.querySelector("#winningCards .modal-header");
-//    modalHeader.innerHTML = header;
-//
-//
-//    var winningCardsMarkup = value.cardSets.reduce(function(markup, cardSet)
-//    {
-//        var setNumber = value.cardSets.indexOf(cardSet) + 1;
-//        var setCardsId = "setCards_" + setNumber;
-//
-//        var setMarkup = cardSet.reduce(function(cardSetMarkup, card)
-//        {
-//            var playingCard = new Card(card.suit, card.value);
-//            var cardMarkup = new Image();
-//            cardMarkup.src = playingCard.getPicture();
-//            cardMarkup.className = "playingCard";
-//
-//            cardSetMarkup.querySelector("#" + setCardsId).appendChild(cardMarkup);
-//            //cardSetMarkup.appendChild(cardMarkup);
-//
-//            return cardSetMarkup;
-//        }, (function()
-//        {
-//            var cardSetMarkup = document.createElement("div");
-//            cardSetMarkup.className = "cardSet";
-//            cardSetMarkup.id = "cardSet_" + setNumber;
-//
-//            var setLabel = document.createElement("span");
-//            setLabel.className = "setLabel";
-//            setLabel.innerHTML = "Set " + setNumber;
-//
-//            cardSetMarkup.appendChild(setLabel);
-//
-//            var cards = document.createElement("span");
-//            cards.id = setCardsId;
-//            cards.className = "setCards";
-//
-//            cardSetMarkup.appendChild(cards);
-//
-//            return cardSetMarkup;
-//        })());
-//
-//        markup.appendChild(setMarkup);
-//
-//        return markup;
-//    }, (function()
-//    {
-//        var winningCardsMarkup = document.createElement("div");
-//        winningCardsMarkup.id = "Winning_Cards";
-//
-//        return winningCardsMarkup;
-//    })());
-//
-//    console.log(winningCardsMarkup);
-//
-//    var modalBody = document.querySelector("#winningCards .modal-body");
-//    modalBody.appendChild(winningCardsMarkup);
-//    //modalBody.innerHTML = value.markup;
-//
-//    $('#winningCards').modal('show');
-//}
 
 function getWinningSets(cardSets)
 {
@@ -432,10 +403,10 @@ function highlightActivePlayer(playerId)
 }
 
 /** Add a user to the "online user table" */
-function addToOnlineUserTable(loggedInUser)
+function userLoggedIn(loggedInUser)
 {
     //$("#players").append($("<tr></tr>").html($("<td id='"+ loggedInUser+"' class='player'></td>").html(loggedInUser)));
-    showInfo(loggedInUser + " logged in.");
+    showInfo(loggedInUser.playerName + " logged in.");
     g_onlineUsers.add(loggedInUser);
 }
 
@@ -464,41 +435,6 @@ function initWebSocket(type)
         performAction(JSON.parse(jsonMessage.data));
     };
 }
-
-function createdSortedPlayersArray()
-{
-    return {
-        players: [],
-        updateFn: function()
-        {
-
-        },
-        initialize: function(values)
-        {
-            this.players = values;
-            this.players.sort();
-            this.updateFn();
-        },
-        add: function(value)
-        {
-            if(this.players.indexOf(value) === -1)
-            {
-                this.players.push(value);
-                this.players.sort();
-                this.updateFn();
-            }
-        },
-        remove: function(value)
-        {
-            this.players = this.players.filter(function(val)
-            {
-                return val != value;
-            });
-            this.updateFn();
-        }
-    }
-}
-
 
 function createCard(value)
 {
