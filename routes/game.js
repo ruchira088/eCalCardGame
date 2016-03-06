@@ -169,26 +169,6 @@ wss.on("connection", function (ws)
          var cardGame = gameMaps.get(identity[Constants.GameId]);
          var action = getActionMap().get(message.type);
          action(cardGame, message.value, ws);
-
-         //if(value.gameType === Constants.GameTypeNone)
-         //{
-         //    onlinePlayers.set(value.username, ws);
-         //    sendToOthers({type: Constants.LoggedInUser, value: value.username}, ws, onlinePlayers.getWebSockets());
-         //} else
-         //{
-         //    var cardGame = gameMaps[value.gameType].get(value.username);
-         //
-         //    var action = getActionMap().get(message.type);
-         //
-         //    action(cardGame, value, ws);
-         //}
-
-
-         //ws.username = message;
-         //webSocketMap.set(ws.username, ws);
-         //count++;
-         //console.log(message);
-         //ws.send(count.toString());
      });
 
     ws.on("close", function ()
@@ -203,9 +183,6 @@ wss.on("connection", function (ws)
         }
 
         broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
-
-        //webSocketMap.delete(ws.username);
-        //onlineUsers.remove(ws.username);
     });
 
 });
@@ -329,22 +306,6 @@ function getActionMap()
             }
         });
 
-        //actionMap.set(Constants.CardPickUp, function (value, webSocket)
-        //{
-        //
-        //    if (isCurrentUser(webSocket) && !locked)
-        //    {
-        //        cardPickUp(value, webSocket);
-        //        locked = true;
-        //    }
-        //    else
-        //    {
-        //        var message = {type: Constants.WaitForTurn, value: onlineUsers.getCurrentUser()};
-        //        webSocket.sendValue(message);
-        //    }
-        //
-        //});
-
         actionMap.set(Constants.Information, function (value, webSocket)
         {
             console.log(value);
@@ -371,27 +332,6 @@ function getActionMap()
                 console.log(JSON.stringify(outcome));
             });
         });
-
-        //actionMap.set(Constants.DeclareVictory, function (value, webSocket)
-        //{
-        //    var playerCards = game.getPlayer(webSocket.username).showCards();
-        //
-        //     requestDispatcher.hasWinningCards({cards : playerCards}, function(outcome)
-        //        {
-        //            if(outcome.result)
-        //            {
-        //                webSocket.sendValue({type: Constants.Victory, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-        //                sendToOthers({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}}, webSocket);
-        //            } else
-        //            {
-        //
-        //                webSocket.sendValue({type: Constants.FalseVictoryDeclaration, value: playerCards});
-        //                sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket);
-        //            }
-        //
-        //            console.log(JSON.stringify(outcome));
-        //        });
-        //});
 
         actionMap.set(Constants.ChatMessage, function(value, webSocket)
         {
@@ -450,49 +390,6 @@ function getActionMap()
             //}
         });
 
-        //actionMap.set(Constants.CardDrop, function (value, webSocket, message)
-        //{
-        //    var card = new Card(value.suit, value.number);
-        //    var srcCard = message.srcCard;
-        //    locked = false;
-        //
-        //    if(srcCard)
-        //    {
-        //        var player = game.getPlayer(webSocket.username);
-        //        player.cards.push(new Card(srcCard.suit, srcCard.number));
-        //        player.removeCard(card);
-        //
-        //        if(AUTO_WIN)
-        //        {
-        //            var playerCards = game.getPlayer(webSocket.username).showCards();
-        //            requestDispatcher.hasWinningCards({cards: playerCards}, function (outcome) {
-        //                if (outcome.result) {
-        //                    webSocket.sendValue({
-        //                        type: Constants.Victory,
-        //                        value: {winner: webSocket.username, cardSets: outcome.cardSets}
-        //                    });
-        //                    sendToOthers({
-        //                        type: Constants.VictoryAnnouncement,
-        //                        value: {winner: webSocket.username, cardSets: outcome.cardSets}
-        //                    }, webSocket);
-        //                    //broadcast({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-        //                    // webSocket.sendValue({type: Constants.VictoryAnnouncement, value: {winner: webSocket.username, cardSets: outcome.cardSets}});
-        //                } else {
-        //                    webSocket.sendValue({type: Constants.Information, value: "Still Going"});
-        //                }
-        //                console.log(JSON.stringify(outcome));
-        //            });
-        //        }
-        //    }
-        //    //console.log("Removing card " + JSON.stringify(card, null, 2));
-        //    //game.getPlayer(webSocket.username).removeCard(card);
-        //
-        //
-        //    onlineUsers.nextUser();
-        //    broadcast({type: Constants.UpdateDrawnCard, value: card});
-        //    broadcast({type: Constants.ActiveUser, value: onlineUsers.getCurrentUser()});
-        //});
-
     }
 
     return actionMap;
@@ -527,66 +424,12 @@ function cardPickUp(cardGame, value, webSocket)
     webSocket.sendValue({type: event, value: card});
 }
 
-//onlineUsers.remove = function(user)
-//{
-//    var index = onlineUsers.indexOf(user);
-//
-//    if(index >= 0)
-//    {
-//        onlineUsers.splice(index, 1);
-//    }
-//
-//};
-//
-//onlineUsers.putIfAbsent = function (value)
-//{
-//    if (this.indexOf(value) === -1)
-//    {
-//        this.push(value);
-//        onlineUsersInfo.set(value, {token: createRandomString()});
-//        return true;
-//    }
-//
-//    return false;
-//};
-//
-//onlineUsers.currentPosition = 0;
-//
-//onlineUsers.nextUser = function ()
-//{
-//    this.currentPosition++;
-//
-//    if(this.length <= this.currentPosition)
-//    {
-//        this.currentPosition = 0;
-//    }
-//
-//    return onlineUsers[this.currentPosition];
-//};
-//
-//onlineUsers.getCurrentUser = function () {
-//    return onlineUsers[this.currentPosition];
-//};
-
 
 router.get("/login", function (request, response)
 {
     if(typeof request.cookies[Constants.UserInformation] != "undefined")
     {
         response.redirect("home");
-
-        /*var user = getUserInfoFromCookie(userInfo);
-
-        var info = onlineUsersInfo.get(user.username);
-
-        if(typeof info != "undefined" && info.token === user.token)
-        {
-            response.render("home", {user: user.username, onlineUsers: onlineUsers, game: game});
-        }
-        else
-        {
-            response.render("login");
-        }*/
     }
     else
     {
@@ -600,22 +443,6 @@ function getUserInfoFromCookie(value)
 
     return {username: values[0], token: values[1]};
 }
-
-//router.post("/", function (request, response) {
-//    var user = request.body.user;
-//
-//    if (!game)
-//    {
-//        game = new Game(onlineUsers);
-//        onlineUsers.randomise();
-//        game.dealCards();
-//    }
-//
-//    var player = game.getPlayer(user);
-//    var drawnCards = game.getDrawnCards();
-//
-//    response.render("game", {player: player, drawnCards: drawnCards, type: Constants.MultiPlayer, onlineUsers: onlineUsers});
-//});
 
 function delegateRequest(request, response, success, fail)
 {
@@ -766,47 +593,50 @@ router.post("/home", function (request, response)
 {
     var accessToken = request.body.token;
 
-    var next = function (success) {
-        if (success)
-        {
-            var user = request.body.username;
-            var verify = request.body.verify;
-
-            if(verify)
-            {
-                response.send("success");
-            }
-            else
-            {
-                logUser(user);
-                response.redirect("home");
-                //if(onlineUsers.putIfAbsent(user))
-                //{
-                //    broadcast({type: Constants.LoggedInUser, value: user});
-                //}
-                //
-                //response.cookie("userInfo", onlineUsersInfo.getCookieInformation(user));
-                //response.redirect("home");
-                ////response.render("home", {user: user, onlineUsers: onlineUsers, game: game});
-            }
-        }
-        else
-        {
-            response.send("fail");
-        }
-    };
+    function fail()
+    {
+        response.send("fail");
+    }
 
     if(accessToken)
     {
         facebookLogin(accessToken, function(user)
         {
             logUser(user);
-            response.send("success");
+            response.redirect("home");
         });
     } else
     {
-        var user = {username: request.body.username, password: request.body.password};
-        requestDispatcher.loginUser(user, next);
+        var username = request.body.username;
+
+        requestDispatcher.getUserCredentials(username, function(userCredentials)
+        {
+            if(userCredentials)
+            {
+                require("./new_user").encryptPassword(request.body.password, userCredentials.salt, function(err, key)
+                {
+                    if (userCredentials.password === key)
+                    {
+                        if(request.body.verify)
+                        {
+                            response.send("success");
+                        }
+                        else
+                        {
+                            logUser(username);
+                            response.redirect("home");
+                        }
+                    }
+                    else
+                    {
+                        fail();
+                    }
+                });
+            } else
+            {
+                fail();
+            }
+        });
     }
 
     function logUser(username)
@@ -816,27 +646,6 @@ router.post("/home", function (request, response)
     }
 });
 
-//router.post("/play", function (request, response)
-//{
-//    var pickedUpCard;
-//
-//    if(request.body.cardSource === "drawnPile")
-//    {
-//        pickedUpCard = game.getDrawnCards().getTopCard();
-//
-//        console.log("You picked up a card from the drawn pile");
-//
-//    }
-//    else
-//    {
-//        pickedUpCard = game.getDeck().pickUpCard();
-//
-//        console.log("You picked up a card from the deck");
-//    }
-//
-//    console.log(pickedUpCard);
-//    response.send(pickedUpCard);
-//});
 
 function broadcast(message, webSocketMap) {
     webSocketMap.forEach(function (socket) {

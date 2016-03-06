@@ -47,6 +47,33 @@ function doUserExistByFacebookId(user, callback)
     });
 }
 
+function getUserCredentials(username, callback)
+{
+    var options =
+    {
+        hostname: HOSTNAME,
+        port: PORT,
+        path: DB_COLLECTION_PATH + "?username=" + username
+    };
+
+    sendRequest(options, null, function(response)
+    {
+        var user = response.results.pop();
+
+        if(user)
+        {
+            callback({
+                username: user.username,
+                password: user.password,
+                salt: user.salt
+            });
+        } else
+        {
+            callback(null);
+        }
+    });
+}
+
 function loginUser(user, callback)
 {
     var options =
@@ -86,10 +113,7 @@ function getFacebookInfo(accessToken, callback)
         path: "/v2.5/me?access_token=" + accessToken + "&fields=id,name,email,picture"
     };
 
-    sendRequest(options, null, function(data)
-    {
-        callback(data);
-    }, https);
+    sendRequest(options, null, callback, https);
 }
 
 function sendRequest(options, submitData, callback, protocol)
@@ -123,6 +147,7 @@ module.exports =
 {
     checkUsernameAvailability : checkUsernameAvailability,
     loginUser : loginUser,
+    getUserCredentials: getUserCredentials,
     createUser : createUser,
     getFacebookInfo : getFacebookInfo,
     hasWinningCards : hasWinningCards,
