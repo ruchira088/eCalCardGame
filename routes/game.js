@@ -153,8 +153,8 @@ function CardGame(game, id)
 
 wss.on("connection", function (ws)
 {
-    ws.sendValue = function (value) {
-        ws.send(JSON.stringify(value));
+    ws.sendValue = function (value, callback) {
+        ws.send(JSON.stringify(value), callback);
     };
 
     ws.on("message", function (jsonMessage)
@@ -649,7 +649,13 @@ router.post("/home", function (request, response)
 
 function broadcast(message, webSocketMap) {
     webSocketMap.forEach(function (socket) {
-        socket.sendValue(message);
+        socket.sendValue(message, function(err)
+        {
+            if(err)
+            {
+                console.log("Unable to send via web socket: '" + JSON.stringify(message) + "' to " + socket.username);
+            }
+        });
     });
 }
 
