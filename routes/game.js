@@ -1,17 +1,19 @@
 var express = require('express');
 var router = express.Router();
 var requestDispatcher = require('../requestDispatcher');
-var WebSocketServer = require('ws').Server;
 var myObjects = require('../myObjects');
 
 var Shared = require('../public/javascripts/shared');
 var Constants = Shared.Constants;
 
+var app = require('../app.js');
+
+const socketIO = require("socket.io")(app);
+
 const AUTO_WIN = false;
 
 var Game = myObjects.CardGame;
 var Card = myObjects.Card;
-var wss = new WebSocketServer({port: Constants.WEB_SOCKET_SERVER_PORT});
 
 // <gameId, CardGame>
 var gameMaps = new Map();
@@ -151,39 +153,41 @@ function CardGame(game, id)
     this.locked = false;
 }
 
-wss.on("connection", function (ws)
+socketIO.on("connection", (socket) =>
 {
-    ws.sendValue = function (value, callback) {
-        ws.send(JSON.stringify(value), callback);
+    socket.sendValue = (message) =>
+    {
+        socket.emit("message", JSON.stringify(message));
     };
 
-    ws.on("message", function (jsonMessage)
-     {
-         console.log(jsonMessage);
-
-         var message = JSON.parse(jsonMessage);
-
-         var identity = extractIdentity(message.cookies);
-         message.value.username = identity[Constants.UserInformation].username;
-
-         var cardGame = gameMaps.get(identity[Constants.GameId]);
-         var action = getActionMap().get(message.type);
-         action(cardGame, message.value, ws);
-     });
-
-    ws.on("close", function ()
+    socket.on("message", (jsonMessage) =>
     {
-        if(ws.gameId)
+        console.log(jsonMessage);
+
+        var message = JSON.parse(jsonMessage);
+
+        var identity = extractIdentity(message.cookies);
+        message.value.username = identity[Constants.UserInformation].username;
+
+        var cardGame = gameMaps.get(identity[Constants.GameId]);
+        var action = getActionMap().get(message.type);
+        action(cardGame, message.value, socket);
+    });
+
+    socket.on("disconnect", () =>
+    {
+        if(socket.gameId)
         {
-            gameMaps.get(ws.gameId).webSocketMap.delete(ws.username);
-            gamePlayers.delete(ws.username);
+            gameMaps.get(socket.gameId).webSocketMap.delete(socket.username);
+            gamePlayers.delete(socket.username);
         } else
         {
-            onlinePlayers.delete(ws.username);
+            onlinePlayers.delete(socket.username);
         }
 
-        broadcast({type: Constants.UserLoggedOut, value:ws.username}, onlinePlayers);
+        broadcast({type: Constants.UserLoggedOut, value:socket.username}, onlinePlayers);
     });
+
 
 });
 
@@ -672,6 +676,12 @@ function createRandomString(strength)
 
     return randomString;
 }
+
+module.exports = {
+    router: function(app)
+    {},
+    playerTokens: playerTokens
+};
 
 
 module.exports = {

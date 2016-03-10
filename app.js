@@ -1,16 +1,20 @@
 var express = require('express');
+const http = require("http");
 var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
+const app = express();
+const server = http.createServer(app);
+
+module.exports = server;
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var new_user = require('./routes/new_user').router;
 var game = require('./routes/game').router;
-
-var app = express();
 
 app.locals.Constants = require('./public/javascripts/shared').Constants;
 
@@ -63,6 +67,3 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-
-module.exports = app;

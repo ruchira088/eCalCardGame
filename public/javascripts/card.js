@@ -4,7 +4,7 @@ const USER_INFORMATION_COOKIE_SEPARATOR = "%26";
 
 var g_actionMap;
 
-var g_webSocket;
+var g_socketIO;
 
 const g_onlineUsers = (function()
 {
@@ -413,7 +413,7 @@ function userLoggedIn(loggedInUser)
 /** Send a message to the web socket server */
 function send(message)
 {
-    g_webSocket.send(JSON.stringify(message));
+    g_socketIO.emit("message", JSON.stringify(message));
 }
 
 /** Initialize the web socket */
@@ -421,19 +421,19 @@ function initWebSocket(type)
 {
     type = type || Constants.HomeLogin;
 
-    g_webSocket = new WebSocket("ws://" + location.hostname + ":" + Constants.WEB_SOCKET_SERVER_PORT);
+    g_socketIO = io.connect("http://" + location.hostname + ":" + 3000);
 
-    g_webSocket.onopen = function ()
+    g_socketIO.on("connect", () =>
     {
         console.log("Success");
-
         send(Message(type));
-    };
+    });
 
-    g_webSocket.onmessage = function (jsonMessage)
+    g_socketIO.on("message", (jsonMessage) =>
     {
-        performAction(JSON.parse(jsonMessage.data));
-    };
+        performAction(JSON.parse(jsonMessage));
+    });
+
 }
 
 function createCard(value)
