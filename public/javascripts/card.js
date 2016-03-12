@@ -112,6 +112,11 @@ function getUsername()
     }, null);
 }
 
+function playAlertTone()
+{
+    new Audio("/other/alertTone.mp3").play();
+}
+
 function pickUpCard(card)
 {
     var message = Message(Constants.CardPickUp);
@@ -182,6 +187,12 @@ function performAction(message)
         g_actionMap.set(Constants.ActiveUser, function(value)
         {
             highlightActivePlayer(value);
+
+            if(getUsername() == value)
+            {
+                playAlertTone();
+                showInfo("It is your turn NOW.");
+            }
         });
 
         g_actionMap.set(Constants.WaitForTurn, function(value)
@@ -399,17 +410,8 @@ function getWinningSets(cardSets)
 
 function highlightActivePlayer(playerId)
 {
-    var players = document.querySelectorAll("#onlinePlayers td");
-
-    for(var i = 0; i < players.length; i++)
-    {
-        var player = players[i];
-
-        player.removeAttribute("data-active-player");
-    }
-
-    var activePlayer = document.querySelector("#onlinePlayers #" + playerId.replace(" ", ""));
-    activePlayer.setAttribute("data-active-player", "true");
+    $("#onlinePlayers td").removeAttr("data-active-player");
+    $("#onlinePlayers #" + playerId.replace(" ", "")).attr("data-active-player", "true");
 }
 
 /** Add a user to the "online user table" */
