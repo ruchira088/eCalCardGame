@@ -9,3 +9,5 @@ Think about when to remove the CardGame from the gameMap.
 Think about excluding cookie data from the WebSockets. i.e assign the data to the WebSocket object.
 
 Fix the issue inregards to Aces in the Outcome service. An Ace should be considered either as 14 or 1.
+
+Remove line 12 from "game.ejs"

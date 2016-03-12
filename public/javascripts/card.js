@@ -114,7 +114,10 @@ function getUsername()
 
 function playAlertTone()
 {
-    new Audio("/other/alertTone.mp3").play();
+    if($("#sound").prop("checked"))
+    {
+        new Audio("/other/alertTone.mp3").play();
+    }
 }
 
 function pickUpCard(card)

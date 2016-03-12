@@ -12,7 +12,9 @@
     <span id="username" data-userName="<%= player.name.replace(" ", "") %>"></span>
 
     <h1>Hi <%= player.name %>,</h1>
-
+    <div class="checkbox">
+        <label><input id="sound" type="checkbox" checked>Sound</label>
+    </div>
     <div id="playerHand">
         <% for(var i = 0; i < player.cards.length; i++)
         { var card = player.cards[i]; %>
