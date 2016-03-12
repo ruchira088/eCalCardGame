@@ -118,7 +118,6 @@ function pickUpCard(card)
     message.value.cardSource =  card.getAttribute(Constants.CardSource);
 
     send(message);
-
 }
 
 // TODO Fix this. At the moment, this is just a mock
@@ -195,6 +194,13 @@ function performAction(message)
             console.log(value)
         });
 
+        g_actionMap.set(Constants.OpponentCardPickup, (value) =>
+        {
+            showInfo(value.player + " picked up a card from " + value.source);
+        });
+
+        g_actionMap.set(Constants.RedirectToHomePage, gotoHomePage);
+
         g_actionMap.set(Constants.FalseVictoryDeclaration, falseVictory);
 
         g_actionMap.set(Constants.FalseVictoryAnnouncement, opponentFalseVictoryAnnouncement);
@@ -231,7 +237,11 @@ function performAction(message)
 
 function loggedInGamer(values)
 {
+}
 
+function gotoHomePage()
+{
+    window.location = "/game/home";
 }
 
 function startGame(values)
@@ -421,7 +431,7 @@ function initWebSocket(type)
 {
     type = type || Constants.HomeLogin;
 
-    g_socketIO = io.connect("http://" + location.hostname + ":" + 3000);
+    g_socketIO = io.connect("http://" + location.hostname + (Constants.SERVER_PORT == 80) ? "" : ":" + Constants.SERVER_PORT);
 
     g_socketIO.on("connect", () =>
     {

@@ -17,7 +17,7 @@ var Card = function (suit, number) {
     }
 };
 
-var Constants =
+const Constants =
 {
     Login: "Login",
     LoggedInUser: "LoggedInUser",
@@ -51,6 +51,7 @@ var Constants =
     GameId: "GameId",
     OnlineUsers: "OnlineUsers",
     HomeLogin: "HomeLogin",
+    RedirectToHomePage: "RedirectToHomePage",
     GameInvitation: "GameInvitation",
     RejectInvitation: "RejectInvitation",
     AcceptInvitation: "AcceptInvitation",
@@ -58,8 +59,9 @@ var Constants =
     UserInformation: "UserInformation",
     GameTypeNone: "None",
     StartGame: "StartGame",
+    OpponentCardPickup: "OpponentCardPickup",
     UserLoggedOut: "UserLoggedOut",
-    WEB_SOCKET_SERVER_PORT: 8080
+    SERVER_PORT: 3000
 };
 
 if (typeof module != "undefined")

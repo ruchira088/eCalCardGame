@@ -6,9 +6,7 @@ var myObjects = require('../myObjects');
 var Shared = require('../public/javascripts/shared');
 var Constants = Shared.Constants;
 
-var app = require('../app.js');
-
-const socketIO = require("socket.io")(app);
+const socketIO = require("socket.io")(require('../server.js'));
 
 const AUTO_WIN = false;
 
@@ -171,7 +169,7 @@ socketIO.on("connection", (socket) =>
 
         var cardGame = gameMaps.get(identity[Constants.GameId]);
         var action = getActionMap().get(message.type);
-        action(cardGame, message.value, socket);
+        action(cardGame, message.value, socket, identity);
     });
 
     socket.on("disconnect", () =>
@@ -224,19 +222,29 @@ function getActionMap()
 
         actionMap = new Map();
 
-        actionMap.set(Constants.Login, function (cardGame, value, webSocket)
+        actionMap.set(Constants.Login, function (cardGame, value, webSocket, identity)
         {
-            webSocket.username = value.username;
-            webSocket.gameId = cardGame.id;
-            cardGame.webSocketMap.set(webSocket.username, webSocket);
-            gamePlayers.set(webSocket.username, webSocket);
-            broadcast({
-                type: Constants.LoggedInUser,
-                value: {
-                    playerName: webSocket.username,
-                    status: Constants.InGame
-                }
-            }, onlinePlayers);
+            if(cardGame) {
+                webSocket.username = value.username;
+                webSocket.gameId = cardGame.id;
+                cardGame.webSocketMap.set(webSocket.username, webSocket);
+                gamePlayers.set(webSocket.username, webSocket);
+                broadcast({
+                    type: Constants.LoggedInUser,
+                    value: {
+                        playerName: webSocket.username,
+                        status: Constants.InGame
+                    }
+                }, onlinePlayers);
+            }
+            else
+            {
+                console.log("The cardGame with ID: " + identity[Constants.GameId] + " does NOT exist.");
+                webSocket.sendValue({
+                    type: Constants.RedirectToHomePage,
+                    value: {}
+                });
+            }
         });
 
         actionMap.set(Constants.HomeLogin, function(cardGame, value, webSocket)
@@ -315,8 +323,6 @@ function getActionMap()
             console.log(value);
         });
 
-
-
         actionMap.set(Constants.DeclareVictory, function (cardGame, value, webSocket)
         {
             var playerCards = cardGame.game.getPlayer(webSocket.username).showCards();
@@ -348,15 +354,27 @@ function getActionMap()
             var newDrawnCard = value[Constants.NewDrawnCard];
             var card = new Card(newDrawnCard.suit, newDrawnCard.number);
 
-            var otherCard = value[Constants.OtherCard];
+            var otherCardValue = value[Constants.OtherCard];
 
             cardGame.locked = false;
-            //cardGame.game.getDrawnCards().putCardOnTop();
 
-            if(otherCard)
+            if(otherCardValue)
             {
+                const otherCard = new Card(otherCardValue.suit, otherCardValue.number);
+
+                if(otherCard.equals(cardGame.game.getDrawnCards().showTopCard()))
+                {
+                    sendToOthers({
+                        type: Constants.OpponentCardPickup,
+                        value: {
+                            player: webSocket.username,
+                            source: Constants.DrawnCardPickUp
+                        }
+                    }, webSocket, cardGame.webSocketMap);
+                }
+
                 var player = cardGame.game.getPlayer(webSocket.username);
-                player.cards.push(new Card(otherCard.suit, otherCard.number));
+                player.cards.push(otherCard);
                 player.removeCard(card);
 
                 if(AUTO_WIN)
@@ -384,6 +402,7 @@ function getActionMap()
             //console.log("Removing card " + JSON.stringify(card, null, 2));
             //game.getPlayer(webSocket.username).removeCard(card);
 
+            cardGame.game.getDrawnCards().putCardOnTop(card);
             cardGame.players.nextUser();
             broadcast({type: Constants.UpdateDrawnCard, value: card}, cardGame.webSocketMap);
             broadcast({type: Constants.ActiveUser, value: cardGame.players.getCurrentUser()}, cardGame.webSocketMap);
@@ -422,10 +441,19 @@ function cardPickUp(cardGame, value, webSocket)
         card = cardGame.game.getDrawnCards().getTopCard();
         event = Constants.DrawnCardPickUp;
     }
-    //
-    //console.log("Pushing card " + JSON.stringify(card, null, 2) + " to " + webSocket.username);
-    //game.getPlayer(webSocket.username).cards.push(card);
-    webSocket.sendValue({type: event, value: card});
+
+    sendToOthers({
+        type: Constants.OpponentCardPickup,
+        value: {
+            player: webSocket.username,
+            source: value
+        }
+    }, webSocket, cardGame.webSocketMap);
+
+    webSocket.sendValue({
+        type: event,
+        value: card
+    });
 }
 
 

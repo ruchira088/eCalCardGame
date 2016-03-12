@@ -1,18 +1,19 @@
 #!/usr/bin/env node
 
+const Constants = require('../public/javascripts/shared').Constants;
+
 /**
  * Module dependencies.
  */
 
-var server = require('../app');
+var server = require('../server');
 var debug = require('debug')('eCalCardGame:server');
-var http = require('http');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort('3000');
+var port = normalizePort(process.env.PORT || Constants.SERVER_PORT);
 
 /**
  * Listen on provided port, on all network interfaces.
