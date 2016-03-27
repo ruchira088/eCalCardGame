@@ -287,11 +287,6 @@ function gameInvitation(values)
     $("#gameInvitation").modal("show");
 }
 
-function opponentFalseVictoryAnnouncement(message)
-{
-    console.log(message.player + " falsely announced victory");
-}
-
 function userLoggedOut(loggedOutUser)
 {
     g_onlineUsers.remove(loggedOutUser);
@@ -317,46 +312,67 @@ function receivedMessage(message)
 
 function victoryDialog(value)
 {
-    $("#winningCards .modal-header").html($("<span id='winnerHeader'>WINNER</span>"));
-    $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("Congratulations you WON the game.")).append(getWinningSets(value.cardSets));
-    $('#winningCards').modal('show');
+    $("#winnerMessage .outcomeCards").html(getWinningSets(value.cardSets));
+    $('#winner').modal('show');
+
+    // showAnnouncement(getAnnouncementDialogTemplate()({
+    //     id: "winner",
+    //     header: "<span id='winnerHeader'>WINNER</span>",
+    //     body: $("<div id='winnerMessage'></div>").append($("<div class='textMessage'></div>").html("Congratulations you WON the game."))
+    //                             .append(getWinningSets(value.cardSets)).prop("outerHTML"),
+    //     footer: ""
+    // }), "#winner");
+
+    // $("#winningCards .modal-header").html($("<span id='winnerHeader'>WINNER</span>"));
+    // $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("Congratulations you WON the game.")).append(getWinningSets(value.cardSets));
+    // $('#winningCards').modal('show');
 }
 function showWinningCards(value)
 {
-    $("#winningCards .modal-header").html($("<div id='winnerHeader'></div>").html(value.winner + " has WON"));
-    $("#winningCards .modal-body").append(getWinningSets(value.cardSets));
-    $('#winningCards').modal('show');
+    $("#opponentWinnerMessage .outcomeCards").html(getWinningSets(value.cardSets));
+    $("#opponentWinner").html(value.winner);
+    $('#opponentWin').modal('show');
+    
+    // $("#winningCards .modal-header").html($("<div id='winnerHeader'></div>").html(value.winner + " has WON"));
+    // $("#winningCards .modal-body").append(getWinningSets(value.cardSets));
+    // $('#winningCards').modal('show');
+}
+
+function losingCardsMarkup(cards)
+{
+    return cards.reduce(function(losingCardsMarkup, card)
+    {
+        var cardValue = card.split("_");
+        var playingCard = new Card(cardValue[1], cardValue[0]);
+        var cardMarkup = new Image();
+        cardMarkup.src = playingCard.getPicture();
+        cardMarkup.className = "playingCard";
+
+        losingCardsMarkup.appendChild(cardMarkup);
+
+        return losingCardsMarkup;
+
+    }, (function(){
+
+        var losingCards = document.createElement("div");
+        losingCards.id = "losingCards";
+
+        return losingCards;
+
+    })());
 }
 
 function falseVictory(cards)
 {
-    $("#winningCards .modal-header").html($("<span id='loserHeader'>LOSER</span>"));
-    $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("You LOST the game.")).append((function()
-    {
-        return cards.reduce(function(losingCardsMarkup, card)
-        {
-            var cardValue = card.split("_");
-            var playingCard = new Card(cardValue[1], cardValue[0]);
-            var cardMarkup = new Image();
-            cardMarkup.src = playingCard.getPicture();
-            cardMarkup.className = "playingCard";
+    $("#loserMessage .outcomeCards").html(losingCardsMarkup(cards));
+    $('#loser').modal('show');
+}
 
-            losingCardsMarkup.appendChild(cardMarkup);
-
-            return losingCardsMarkup;
-
-        }, (function(){
-
-            var losingCards = document.createElement("div");
-            losingCards.id = "losingCards";
-
-            return losingCards;
-
-        })());
-
-    })());
-
-    $('#winningCards').modal('show');
+function opponentFalseVictoryAnnouncement(value)
+{
+    $("#opponentLoserMessage .outcomeCards").html(losingCardsMarkup(value.cards));
+    $("#opponentLoser").html(value.player);
+    $('#opponentLose').modal('show');
 }
 
 function getWinningSets(cardSets)

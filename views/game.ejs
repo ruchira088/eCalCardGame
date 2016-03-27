@@ -5,6 +5,7 @@
     <title>Game</title>
     <% include templates/header.ejs %>
     <% include templates/notifications.ejs %>
+    <script src="/bower_components/handlebars/handlebars.js"></script>
 </head>
 <body>
 <div id="game" class="container">
@@ -15,6 +16,7 @@
     <div class="checkbox">
         <label><input id="sound" type="checkbox" checked>Sound</label>
     </div>
+    <button id="exitGameBtn">Exit Game</button>
     <div id="playerHand">
         <% for(var i = 0; i < player.cards.length; i++)
         { var card = player.cards[i]; %>
@@ -51,24 +53,42 @@
         <div id="drawnCard" class="movable"></div>
     </div>
 
-    <div class="modal fade" id="winningCards" role="dialog">
+    <div id="announcementAttachPoint">
+
+    </div>
+    <div id="exitGameDialog" title="Exit Game">
+        <p>Are you sure that you want to exit the game ?</p>
+    </div>
+</div>
+<script id="announcementDialog" type="text/x-handlebars-template">
+    <div class="modal fade" id="{{id}}" role="dialog">
         <div class="modal-dialog">
             <!-- Modal content-->
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">Winning Cards</h4>
+                    {{{ header }}}
                 </div>
                 <div class="modal-body">
+                    {{{ body }}}
                 </div>
                 <div class="modal-footer">
-                        <button id="backToHomeBtn">OK</button>
+                    {{{ footer }}}
+                    <button class="backToHomeBtn">Goto home page</button>
+                    <button class="dismissModal">OK</button>
                 </div>
             </div>
-
         </div>
     </div>
-
-</div>
+</script>
+<script id="outcomeMessageTemplate" type="text/x-handlebars-template">
+    <div id="{{id}}">
+        <div class="textMessage">
+            {{{ message }}}
+        </div>
+        <div class="outcomeCards">
+        </div>
+    </div>
+</script>
 <script>
     initWebSocket(Constants.Login);
     <% var topCard = drawnCards.showTopCard() %>
@@ -79,11 +99,34 @@
         highlightActivePlayer("<%= onlineUsers[0]%>");
     <%} %>
 
+    function exitGame()
+    {
+        removeCookie(Constants.GameId);
+        window.location = "/game/home";
+    }
+
     $(document).ready(function()
             {
                 $(".movable").draggable();
 
                 $("#playerHand").draggable().resizable();
+
+                $("#exitGameDialog").dialog({
+                    modal: true,
+                    autoOpen: false,
+                    buttons: {
+                        Yes: exitGame,
+                        No: function()
+                        {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+
+                $("#exitGameBtn").on("click", function()
+                {
+                    $("#exitGameDialog").dialog("open");
+                });
 
                 $("#playerHand .playingCard").draggable(
                         {
@@ -101,11 +144,58 @@
                         }
                 );
 
-                $("#backToHomeBtn").on("click", function()
-                {
-                    removeCookie(Constants.GameId);
-                    window.location = "/game/home";
+                const announcementTemplate = Handlebars.compile($("#announcementDialog").html());
+                const outcomeMessage = Handlebars.compile($("#outcomeMessageTemplate").html());
+
+                const winnerDialog = announcementTemplate({
+                    id: "winner",
+                    header: "<span id='winnerHeader'>WINNER</span>",
+                    body: outcomeMessage({
+                        id: "winnerMessage",
+                        message: "Congratulations you WON the game."
+                    })
                 });
+
+                const opponentWinnerDialog = announcementTemplate({
+                    id: "opponentWin",
+                    header: "<span><span id='opponentWinner'></span> has WON the game.</span>",
+                    body: outcomeMessage({
+                        id: "opponentWinnerMessage",
+                        message: "The winning cards are the following,"
+                    })
+                });
+
+                const loserDialog = announcementTemplate({
+                    id: "loser",
+                    header: "<span id='loserHeader'>LOSER</span>",
+                    body: outcomeMessage({
+                        id: "loserMessage",
+                        message: "You FALSELY declared victory"
+                    })
+                });
+
+                const opponentLoserDialog = announcementTemplate({
+                    id: "opponentLose",
+                    header: "<span><span id='opponentLoser'></span> FALSELY declared victory.</span>",
+                    body: outcomeMessage({
+                        id: "opponentLoserMessage",
+                        message: "These are the losing cards"
+                    })
+                });
+
+                $("#announcementAttachPoint")
+                        .append(winnerDialog)
+                        .append(opponentWinnerDialog)
+                        .append(loserDialog)
+                        .append(opponentLoserDialog);
+
+                $(".backToHomeBtn").on("click", exitGame);
+
+                $(".dismissModal").on("click", function()
+                {
+                    $(this).closest(".modal").modal("hide");
+                });
+
             }
     );
 </script>

@@ -243,6 +243,11 @@ h1
   margin-bottom: 50px;
 }
 
+#announcementAttachPoint .textMessage
+{
+  margin-bottom: 10px;
+}
+
 #homepage #greeting, #homepage #logout
 {
   margin-top: 40px;
@@ -254,6 +259,14 @@ h1
 {
   float: right;
   font-size: 125%;
+}
+
+button.ui-dialog-titlebar-close
+{
+  background-image: url("/bower_components/jquery-ui/themes/smoothness/images/ui-icons_888888_256x240.png");
+  background-position: -96px -128px;
+  border-style: solid;
+  border-color: grey;
 }
 
 .message
