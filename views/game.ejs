@@ -99,14 +99,16 @@
         highlightActivePlayer("<%= onlineUsers[0]%>");
     <%} %>
 
-    function exitGame()
-    {
-        removeCookie(Constants.GameId);
-        window.location = "/game/home";
-    }
-
     $(document).ready(function()
             {
+                var plannedExit = false;
+
+                function exitGame()
+                {
+                    plannedExit = true;
+                    window.location = "/game/home";
+                }
+
                 $(".movable").draggable();
 
                 $("#playerHand").draggable().resizable();
@@ -122,6 +124,21 @@
                         }
                     }
                 });
+
+                window.onbeforeunload = function ()
+                {
+                    removeCookie(Constants.GameId);
+
+                    if(!plannedExit && g_socketIO.connected)
+                    {
+                        return "This action will EXIT the game.";
+                    }
+                };
+//                $(window).unload(function()
+//                {
+//                    removeCookie(Constants.GameId);
+//                    return "Hello World";
+//                });
 
                 $("#exitGameBtn").on("click", function()
                 {

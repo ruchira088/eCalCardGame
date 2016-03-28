@@ -13,3 +13,5 @@ Fix the issue inregards to Aces in the Outcome service. An Ace should be conside
 Remove line 12 from "game.ejs"
 
 Change Tomcat to use the default port 8080
+
+Add the ability to refresh the page, when there are defeated players. (At the moment, everything works fine except the defeated players being crossed out)

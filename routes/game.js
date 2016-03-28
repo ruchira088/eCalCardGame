@@ -47,7 +47,7 @@ var onlineUsers = [];
 myObjects.extendArray(onlineUsers);
 
 
-function GamePlayers()
+function GamePlayers(players)
 {
     this.currentPosition = 0;
     this.players = [];
@@ -55,10 +55,28 @@ function GamePlayers()
 
     this.remove = function(username)
     {
+        var index = null;
         this.players = this.players.filter(function(player)
         {
-            return player.username != username;
-        });
+            var different = player.username != username;
+
+            if(!different)
+            {
+                index = this.players.indexOf(player);
+            }
+
+            return different;
+        }.bind(this));
+
+        if(this.currentPosition == index)
+        {
+            this.currentPosition++;
+        }
+
+        if(this.currentPosition >= this.players.length)
+        {
+            this.currentPosition = 0;
+        }
     };
 
     this.getPlayers = function()
@@ -132,19 +150,38 @@ function GamePlayers()
         return this.players[this.currentPosition].username;
     };
 
+    this.addPlayers(players);
 }
 
 function CardGame(game, id)
 {
     this.game = game;
     this.id = id;
-    this.players = (function()
-    {
-        var gamePlayers = new GamePlayers();
-        gamePlayers.addPlayers(Array.from(game.getPlayers().keys()));
+    this.players = new GamePlayers(Array.from(game.getPlayers().keys()));
 
-        return gamePlayers;
-    })();
+    // this.players = (function()
+    // {
+    //     var gamePlayers = new GamePlayers();
+    //     gamePlayers.addPlayers(Array.from(game.getPlayers().keys()));
+    //
+    //     return gamePlayers;
+    // })();
+
+    this.removePlayer = function(player)
+    {
+        this.players.remove(player);
+        // this.game.removePlayer(player);
+
+        if(this.players.players.length != 0)
+        {
+            const currentUser = this.players.getCurrentUser();
+
+            broadcast({
+                type: Constants.ActiveUser,
+                value: currentUser
+            }, this.webSocketMap);
+        }
+    };
 
     //<username, webSocket>
     this.webSocketMap = new Map();
@@ -174,16 +211,36 @@ socketIO.on("connection", (socket) =>
 
     socket.on("disconnect", () =>
     {
+        const username = socket.username;
+
         if(socket.gameId)
         {
-            gameMaps.get(socket.gameId).webSocketMap.delete(socket.username);
-            gamePlayers.delete(socket.username);
+            const game = gameMaps.get(socket.gameId);
+            const webSocketMap = game.webSocketMap;
+            webSocketMap.delete(username);
+            
+            var type = Constants.AbandonedPlayer;
+            
+            if(socket.outcome == Constants.LOST)
+            {
+                type = Constants.OpponentLose;
+            }
+            else if(socket.outcome == Constants.WON)
+            {
+                type = Constants.OpponentWin;
+            }
+            
+            broadcast({type: type, value: username}, webSocketMap);
+            
+            game.removePlayer(username);
+
+            gamePlayers.delete(username);
         } else
         {
-            onlinePlayers.delete(socket.username);
+            onlinePlayers.delete(username);
         }
 
-        broadcast({type: Constants.UserLoggedOut, value:socket.username}, onlinePlayers);
+        broadcast({type: Constants.UserLoggedOut, value:username}, onlinePlayers);
     });
 
 
@@ -339,6 +396,13 @@ function getActionMap()
                     sendToOthers({type: Constants.FalseVictoryAnnouncement, value: {player: webSocket.username, cards: playerCards}}, webSocket, cardGame.webSocketMap);
                 }
 
+                if(cardGame.webSocketMap.size > 1)
+                {
+                    webSocket.sendValue({type: Constants.RemoveGameIdCookie, value:{}});
+
+                    webSocket.outcome = outcome.result ? Constants.WON : Constants.LOST;
+                    webSocket.disconnect();
+                }
                 console.log(JSON.stringify(outcome));
             });
         });
@@ -610,7 +674,21 @@ router.get("/multiPlayer", function(request, response)
 {
     delegateRequest(request, response, function(username, request, response)
     {
-            var game = gameMaps.get(request.cookies[Constants.GameId]).game;
+            const gameId = request.cookies[Constants.GameId];
+
+            if(!gameId)
+            {
+                gotoHomepage();
+                return;
+            }
+
+            var game = gameMaps.get(gameId).game;
+
+            if(!game)
+            {
+                gotoHomepage();
+                return;
+            }
 
             response.render("game", {
                 player: game.getPlayer(username),
@@ -618,6 +696,11 @@ router.get("/multiPlayer", function(request, response)
                 drawnCards: game.getDrawnCards(),
                 onlineUsers: Array.from(game.getPlayers().keys())
             });
+
+            function gotoHomepage()
+            {
+                response.redirect("/home");
+            }
     });
 });
 

@@ -203,12 +203,19 @@ function performAction(message)
             showError("It is not your turn.");
         });
 
+        g_actionMap.set(Constants.OpponentLose, defeatedPlayer);
+
+        g_actionMap.set(Constants.RemoveGameIdCookie, function()
+        {
+            removeCookie(Constants.GameId);
+        });
+
         g_actionMap.set(Constants.DrawnCardPickUp, function (value)
         {
             console.log(value)
         });
 
-        g_actionMap.set(Constants.OpponentCardPickup, (value) =>
+        g_actionMap.set(Constants.OpponentCardPickup, function(value)
         {
             showInfo(value.player + " picked up a card from " + value.source);
         });
@@ -228,6 +235,18 @@ function performAction(message)
         g_actionMap.set(Constants.UserLoggedOut, userLoggedOut);
 
         g_actionMap.set(Constants.GameInvitation, gameInvitation);
+
+        g_actionMap.set(Constants.OpponentWin, function(playerName)
+        {
+            removeUserFromOnlineTableMarkup(playerName);
+            showInfo(playerName + " has WON.");
+        });
+
+        g_actionMap.set(Constants.AbandonedPlayer, function(playerName)
+        {
+            removeUserFromOnlineTableMarkup(playerName);
+            showWarning(playerName + " has abandoned the game.");
+        });
 
         g_actionMap.set(Constants.OnlineUsers, function(values)
         {
@@ -290,6 +309,11 @@ function gameInvitation(values)
 function userLoggedOut(loggedOutUser)
 {
     g_onlineUsers.remove(loggedOutUser);
+}
+
+function defeatedPlayer(username)
+{
+    $("table #" + username).addClass("defeatedPlayer");
 }
 
 function removeUserFromOnlineTableMarkup(username)
@@ -454,13 +478,13 @@ function initWebSocket(type)
 
     g_socketIO = io.connect("http://" + location.hostname + (Constants.SERVER_PORT == 80) ? "" : ":" + Constants.SERVER_PORT);
 
-    g_socketIO.on("connect", () =>
+    g_socketIO.on("connect", function()
     {
         console.log("Success");
         send(Message(type));
     });
 
-    g_socketIO.on("message", (jsonMessage) =>
+    g_socketIO.on("message", function(jsonMessage)
     {
         performAction(JSON.parse(jsonMessage));
     });

@@ -61,6 +61,12 @@ const Constants =
     StartGame: "StartGame",
     OpponentCardPickup: "OpponentCardPickup",
     UserLoggedOut: "UserLoggedOut",
+    AbandonedPlayer: "AbandonedPlayer",
+    OpponentLose: "OpponentLose",
+    OpponentWin: "OpponentWin",
+    RemoveGameIdCookie: "RemoveGameIdCookie",
+    WON: "WON",
+    LOST: "LOST",
     SERVER_PORT: 3000
 };
 

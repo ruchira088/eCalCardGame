@@ -142,6 +142,11 @@ var CardGame = function (playerNames) {
     {
         players.set(player.name, player);
     };
+    
+    this.removePlayer = function remove(playerName) 
+    {
+        players.delete(playerName);  
+    };
 
     this.getDeck = function () {
         return deck;

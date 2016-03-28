@@ -269,6 +269,11 @@ button.ui-dialog-titlebar-close
   border-color: grey;
 }
 
+.defeatedPlayer
+{
+  text-decoration: line-through;
+}
+
 .message
 {
   display: block;
