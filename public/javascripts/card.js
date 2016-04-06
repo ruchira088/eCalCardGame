@@ -719,7 +719,8 @@ function validateAndSubmit(form)
 
 function sendChatMessage(message)
 {
-    send({type: Constants.ChatMessage, value: message});
+    send(Message(Constants.ChatMessage, message));
+    //send({type: Constants.ChatMessage, value: message});
 }
 
 function pushToChatConsole(value)

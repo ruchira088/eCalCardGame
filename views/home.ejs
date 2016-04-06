@@ -29,7 +29,7 @@
         </table>
     </div>
     <div id="chatArea">
-        <% // include templates/chatroom.ejs %>
+        <% include templates/chatroom.ejs %>
     </div>
     <div>
         <a class="btn btn-primary btn-lg" href="/game/singlePlayer">Single Player</a>
@@ -121,8 +121,6 @@
 
         $(document).ready(function()
         {
-            $("#chatArea").draggable();
-
             var modalDialogTemplate = Handlebars.compile($("#modalDialogTemplate").html());
             var multiPlayerBody = Handlebars.compile($("#multiPlayerBody").html());
             var multiPlayerFooter = Handlebars.compile($("#multiPlayerFooter").html());

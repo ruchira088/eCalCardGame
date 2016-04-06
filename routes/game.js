@@ -407,10 +407,10 @@ function getActionMap()
             });
         });
 
-        actionMap.set(Constants.ChatMessage, function(value, webSocket)
+        actionMap.set(Constants.ChatMessage, function(cardGame, value, webSocket)
         {
             var message = {sender: webSocket.username, message: value};
-            broadcast({type: Constants.ChatMessage, value: message});
+            broadcast({type: Constants.ChatMessage, value: message}, cardGame ? cardGame.webSocketMap: onlinePlayers);
         });
 
         actionMap.set(Constants.CardDrop, function (cardGame, value, webSocket)

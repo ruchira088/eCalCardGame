@@ -1,14 +1,18 @@
-<div id="chatRoom">
+<div class="form-group" id="chatRoom">
     <div id="chatConsole">
     </div>
     <div id="chatUserInput">
-        <textarea></textarea>
-        <button>Send</button>
+        <textarea class="form-control"></textarea>
+        <button type="button" class="btn btn-primary">
+            Send
+        </button>
     </div>
 
     <script>
         $(document).ready(function()
         {
+            $("#chatArea").draggable();
+
             $("#chatUserInput textarea").on("keyup", function(event)
             {
                 if(event.keyCode == 13)

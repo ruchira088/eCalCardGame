@@ -28,6 +28,7 @@
         <button onclick="declareVictory()">Announce Victory</button>
     </div>
     <div id="chatArea">
+        <% include templates/chatroom.ejs %>
     </div>
 
     <% if (type === Constants.MultiPlayer)
@@ -44,7 +45,9 @@
         <% } %>
     </table>
     </div>
-    <% }%>
+    <%
+    }
+    %>
     <div id="tableArea">
         <div id="cardStack" class="movable">
             <img id="cardDeck" class="playingCard" <%= Constants.CardSource %>="<%= Constants.CARD_SOURCE.DECK %>" onclick=

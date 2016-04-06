@@ -31,7 +31,7 @@
 
 #chatRoom div
 {
-  min-width: 30vw;
+  min-width: 20vw;
   margin: 10px;
 }
 
@@ -40,6 +40,8 @@
   overflow: scroll;
   height: 30vh;
   background-color: white;
+  border-radius: 4px;
+  padding: 10px;
 }
 
 #chatUserInput
@@ -277,4 +279,9 @@ button.ui-dialog-titlebar-close
 .message
 {
   display: block;
+}
+
+#chatUserInput button
+{
+  margin-top: 10px;
 }
