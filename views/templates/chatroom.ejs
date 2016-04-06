@@ -1,8 +1,9 @@
 <div class="form-group" id="chatRoom">
     <div id="chatConsole">
+        <span id="chatConsoleHeading">Chat Messages</span>
     </div>
     <div id="chatUserInput">
-        <textarea class="form-control"></textarea>
+        <textarea placeholder="Enter your message here" class="form-control"></textarea>
         <button type="button" class="btn btn-primary">
             Send
         </button>
@@ -11,7 +12,7 @@
     <script>
         $(document).ready(function()
         {
-            $("#chatArea").draggable();
+            $("#chatRoom").draggable();
 
             $("#chatUserInput textarea").on("keyup", function(event)
             {

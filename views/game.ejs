@@ -27,12 +27,12 @@
     <div>
         <button onclick="declareVictory()">Announce Victory</button>
     </div>
-    <div id="chatArea">
-        <% include templates/chatroom.ejs %>
-    </div>
 
     <% if (type === Constants.MultiPlayer)
     { %>
+    <div class="chatArea">
+        <% include templates/chatroom.ejs %>
+    </div>
     <div id="onlinePlayersPlaceholder" class="movable">
     <table id="onlinePlayers">
         <tr>
