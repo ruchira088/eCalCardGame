@@ -159,14 +159,6 @@ function CardGame(game, id)
     this.id = id;
     this.players = new GamePlayers(Array.from(game.getPlayers().keys()));
 
-    // this.players = (function()
-    // {
-    //     var gamePlayers = new GamePlayers();
-    //     gamePlayers.addPlayers(Array.from(game.getPlayers().keys()));
-    //
-    //     return gamePlayers;
-    // })();
-
     this.removePlayer = function(player)
     {
         this.players.remove(player);
@@ -328,7 +320,19 @@ function getActionMap()
             var allPlayers = players.slice();
             allPlayers.push(webSocket.username);
 
-            var multiPlayerGame = new CardGame(new Game(allPlayers), createRandomString());
+            var multiPlayerGame = new CardGame(new Game(allPlayers.reduce((players, player) =>
+            {
+                if(parseInt(Math.random()*2))
+                {
+                    players.push(player);
+                } else
+                {
+                    players = [player].concat(players);
+                }
+
+                return players;
+            }, [])), createRandomString());
+
             multiPlayerGame.webSocketMap.set(webSocket.username, webSocket);
             multiPlayerGame.players.setPendingInvitationList(players);
             //multiPlayerGame.game.dealCards();

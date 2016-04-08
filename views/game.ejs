@@ -16,7 +16,7 @@
     <div class="checkbox">
         <label><input id="sound" type="checkbox" checked>Sound</label>
     </div>
-    <button id="exitGameBtn">Exit Game</button>
+    <button role="button" class="btn btn-danger" id="exitGameBtn">Exit Game</button>
     <div id="playerHand">
         <% for(var i = 0; i < player.cards.length; i++)
         { var card = player.cards[i]; %>
@@ -25,7 +25,7 @@
         <% } %>
     </div>
     <div>
-        <button onclick="declareVictory()">Announce Victory</button>
+        <button role="button" class="btn btn-primary" id="announceVictoryBtn">Announce Victory</button>
     </div>
 
     <% if (type === Constants.MultiPlayer)
@@ -61,6 +61,13 @@
     </div>
     <div id="exitGameDialog" title="Exit Game">
         <p>Are you sure that you want to exit the game ?</p>
+    </div>
+    <div id="announceVictoryDialog" title="Announce Victory">
+        <p>Are you sure that you want to announce victory ?</p>
+        <% if (type === Constants.MultiPlayer)
+        { %>
+        <p>(Falsely announcing victory will result in a loss)</p>
+        <% } %>
     </div>
 </div>
 <script id="announcementDialog" type="text/x-handlebars-template">
@@ -116,11 +123,32 @@
 
                 $("#playerHand").draggable().resizable();
 
+                $("#announceVictoryBtn").on("click", function()
+                {
+                    $("#announceVictoryDialog").dialog("open");
+                });
+
                 $("#exitGameDialog").dialog({
                     modal: true,
                     autoOpen: false,
                     buttons: {
                         Yes: exitGame,
+                        No: function()
+                        {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+
+                $("#announceVictoryDialog").dialog({
+                    modal: true,
+                    autoOpen: false,
+                    buttons: {
+                        Yes: function()
+                        {
+                            declareVictory();
+                            $(this).dialog("close");
+                        },
                         No: function()
                         {
                             $(this).dialog("close");
