@@ -327,9 +327,9 @@ function receivedMessage(message)
     var sender = message.sender;
     var messageContents = message.message;
 
-    pushToChatConsole($("<span class='message'></span>").append($("<span class='sender'></span>").html(sender)).
-    append($("<span class='seperator'></span>").html(" : ")).
-    append($("<span class='messageContents'></span>").html(messageContents)));
+    pushToChatConsole($("<span class='message'></span>").append($("<span class='sender'></span>").text(sender)).
+    append($("<span class='seperator'></span>").text(" : ")).
+    append($("<span class='messageContents'></span>").text(messageContents)));
 
    // pushToChatConsole(sender + " : " + messageContents);
 }
