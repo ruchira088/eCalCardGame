@@ -1,39 +1,282 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
     <% include templates/header.ejs %>
     <% include templates/notifications.ejs %>
+    <script src="/bower_components/handlebars/handlebars.js"></script>
 </head>
 <body>
 <div id="homepage" class="container">
     <h1 id="greeting">Hi <%= user %>,</h1>
     <a href="/game/logout" id="logout">Logout</a>
-    <table id="players">
-        <tr>
-            <th>Online Players</th>
-        </tr>
-        <% for(var i = 0; i < onlineUsers.length; i++) { %>
-        <tr>
-            <td id="<%= onlineUsers[i] %>" class="player"><%= onlineUsers[i] %></td>
-        </tr>
-        <% } %>
-    </table>
-    <div>
-        <% if(!game)
-        {%>
-        <form action="/game/" method="POST">
-            <input name="user" value="<%= user %>" type="hidden">
-            <input id="startGameBtn" type="submit" value="Start Game">
-        </form>
-        <%} else
-        {%>
-            <div>A game is in progress</div>
-        <%}%>
+    <div id="onlinePlayersContainer">
+        <table id="players">
+            <tr>
+                <th>Online Players</th>
+            </tr>
+            <%
+                players.forEach(function(player)
+                {
+            %>
+                    <tr>
+                        <td class="player <%= player.status %>"><%= player.playerName %></td>
+                    </tr>
+            <%
+                });
+            %>
+        </table>
     </div>
+    <div class="chatArea">
+        <% include templates/chatroom.ejs %>
+    </div>
+    <div>
+        <a class="btn btn-primary btn-lg" href="/game/singlePlayer">Single Player</a>
+        <button id="multiPlayerBtn" type="button" class="btn btn-info btn-lg" data-toggle="modal">
+            MultiPlayer
+        </button>
+
+        <div id="modalDialogContainer">
+        </div>
+    </div>
+    <script id="onlinePlayersTableTemplate" type="text/x-handlebars-template">
+        <table id="players">
+            <thead>
+                <tr>
+                    <th>Online Players</th>
+                </tr>
+            </thead>
+            {{{ body }}}
+        </table>
+    </script>
+    <script id="onlinePlayerPlaceholder" type="text/x-handlebars-template">
+        <tr>
+            <td class="player {{status}}">{{{ playerName }}}</td>
+        </tr>
+    </script>
+    <script id="modalDialogTemplate" type="text/x-handlebars-template">
+        <div class="modal fade" id="{{id}}" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            &times;
+                        </button>
+                        <h4 class="modal-title">
+                            {{{title}}}
+                        </h4>
+                    </div>
+
+                    <div class="modal-body">
+                        {{{body}}}
+                    </div>
+
+                    <div class="modal-footer">
+                        {{{footer}}}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+    <script id="multiPlayerFooter" type="text/x-handlebars-template">
+        <button id="invitePlayersBtn" type="button" data-dismiss="modal" data-toggle="modal"
+                data-target="#selectedPlayersDialog" class="btn btn-primary">
+            Invite Players
+        </button>
+    </script>
+    <script id="multiPlayerBody" type="text/x-handlebars-template">
+        <input id="onlinePlayerSearch" type="text" class="form-control">
+        <div id='onlinePlayersList'>
+        </div>
+    </script>
+    <script id="btnTemplate" type="text/x-handlebars-template">
+        <button id="{{id}}" type="button" class="btn{{classes}}" {{{attributes}}}>{{label}}</button>
+    </script>
     <script>
-        initWebSocket("<%= user %>");
+        initWebSocket();
+
+        var selectedPlayers = {
+            players: [],
+            add: function(playerName)
+            {
+                this.players.push(playerName);
+            },
+            remove: function(playerName)
+            {
+                this.players = this.players.filter(function(name)
+                {
+                   return playerName != name;
+                });
+            },
+            isIncluded: function(playerName)
+            {
+                return this.players.indexOf(playerName) != -1;
+            }
+        };
+
+        var onlinePlayersTableTemplate = Handlebars.compile($("#onlinePlayersTableTemplate").html());
+        var onlinePlayerEntry = Handlebars.compile($("#onlinePlayerPlaceholder").html());
+
+        $(document).ready(function()
+        {
+            var modalDialogTemplate = Handlebars.compile($("#modalDialogTemplate").html());
+            var multiPlayerBody = Handlebars.compile($("#multiPlayerBody").html());
+            var multiPlayerFooter = Handlebars.compile($("#multiPlayerFooter").html());
+            var btnTemplate = Handlebars.compile($("#btnTemplate").html());
+
+            var multiPlayerDialog = modalDialogTemplate({
+                id: "multiPlayerDialog",
+                title: "Select the players you want to invite to the game",
+                body: multiPlayerBody(),
+                footer:  multiPlayerFooter() + btnTemplate(closeBtnParameters("multipleCloseBtn"))
+            });
+
+            var selectedPlayersDialog = modalDialogTemplate({
+                id: "selectedPlayersDialog",
+                title: "Waiting for the players to respond",
+                body: "<div id='selectedPlayers' class='auto_update'></div>",
+                footer: btnTemplate(closeBtnParameters("selectedPlayerCloseBtn"))
+            });
+
+            var gameInvitation =  modalDialogTemplate({
+                id: "gameInvitation",
+                title: "<span id='gameInvitationTitle'></span>",
+                body: "<div id='gameSummary'></div>",
+                footer: btnTemplate({
+                    id: "acceptBtn",
+                    label: "Accept Invitation",
+                    classes: " btn-success"
+                }) + btnTemplate({
+                    id: "rejectBtn",
+                    label: "Reject",
+                    classes: " btn-danger"
+                })
+            });
+
+
+            $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog).append(gameInvitation);
+
+            $("#invitePlayersBtn").on("click", function()
+            {
+                var selectedPlayerContainer = $("#selectedPlayersDialog #selectedPlayers").empty();
+
+                selectedPlayers.players.forEach(function(player)
+                {
+                    selectedPlayerContainer.append($("<div></div>").attr("data-player-name", player).text(player));
+                });
+
+                send(Message(Constants.GameInvitation, selectedPlayers.players));
+
+            });
+
+            // TODO: consolidate the click handlers for the reject button
+            $("#rejectBtn").on("click", function()
+            {
+                $("#gameInvitation").modal("hide");
+                //send(Message(Constants.RejectInvitation));
+            });
+
+            $("#acceptBtn").on("click", function()
+            {
+                sendGameInvitationResponse(Constants.AcceptInvitation);
+            });
+
+            $("#rejectBtn").on("click", function()
+            {
+                sendGameInvitationResponse(Constants.RejectInvitation);
+            });
+
+            $("#multiPlayerBtn").on("click", function()
+            {
+                renderPlayerInvitationTable(g_onlineUsers.players);
+                $("#multiPlayerDialog").modal("show");
+            });
+
+            $("#onlinePlayerSearch").on("keyup", function()
+            {
+                renderPlayerInvitationTable(g_onlineUsers.players.filter(function(player)
+                {
+                    return player.indexOf($(this).val()) != -1;
+                }.bind(this)));
+            });
+
+        });
+
+        function sendGameInvitationResponse(response)
+        {
+            document.cookie = [Constants.GameId, $("#gameSummary").attr("data-game-id")].join("=");
+            send(Message(response));
+            removeCookie(Constants.GameId);
+        }
+
+        function closeBtnParameters(id)
+        {
+            return {
+                id: id,
+                label: "Close",
+                classes:" btn-default",
+                attributes: "data-dismiss='modal'"
+            }
+        }
+
+        function renderOnlinePlayersTable(onlineUsers)
+        {
+            const username = getUsername();
+
+            var onlinePlayerTable = onlinePlayersTableTemplate({
+                body: (function()
+                {
+                    return onlineUsers.filter(function(player)
+                    {
+                        return username != player.playerName;
+
+                    }).reduce(function(markup, player)
+                    {
+                        $(markup).append(onlinePlayerEntry({
+                            playerName: player.playerName,
+                            status: player.status
+                        }));
+
+                        return markup;
+                    }, $("<tbody></tbody>"));
+                })().html()
+            });
+
+            $("#onlinePlayersContainer").empty().append(onlinePlayerTable);
+        }
+
+        function renderPlayerInvitationTable(onlineUsers)
+        {
+            var playerList = $("#onlinePlayersList").empty();
+
+            const username = getUsername();
+
+            onlineUsers.filter(function(user)
+            {
+                return user.status === Constants.InHomePage && user.playerName != username;
+            }).map(function(user)
+            {
+                return user.playerName;
+            }).forEach(function(user)
+            {
+                playerList.append($("<div class='checkbox'></div>").
+                    append($("<label></label>").
+                    append($("<input type='checkbox'>").on("change", function()
+                    {
+                        if($(this).prop("checked"))
+                        {
+                            selectedPlayers.add(user);
+                        } else
+                        {
+                            selectedPlayers.remove(user);
+                        }
+                    }).prop("checked", selectedPlayers.isIncluded(user))).
+                    append(user)));
+            });
+        }
+
     </script>
 </div>
 </body>

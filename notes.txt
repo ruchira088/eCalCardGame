@@ -1,0 +1,17 @@
+Assign the game Id to the web socket, so then it is not necessary to for the client to be aware of the game ID in the game invitation step.
+
+Include the webSocket for players in the players object of a CardGame rather than having a separate Map.
+
+Use HandleBars to create the winning and losing modal dialogs in games.
+
+Think about when to remove the CardGame from the gameMap.
+
+Think about excluding cookie data from the WebSockets. i.e assign the data to the WebSocket object.
+
+Fix the issue inregards to Aces in the Outcome service. An Ace should be considered either as 14 or 1.
+
+Remove line 12 from "game.ejs"
+
+Change Tomcat to use the default port 8080
+
+Add the ability to refresh the page, when there are defeated players. (At the moment, everything works fine except the defeated players being crossed out)

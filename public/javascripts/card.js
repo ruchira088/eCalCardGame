@@ -1,7 +1,61 @@
+const COOKIE_DELIMITER = ";";
+const COOKIE_KEY_VALUE_SEPARATOR = "=";
+const USER_INFORMATION_COOKIE_SEPARATOR = "%26";
+
 var g_actionMap;
 
-var g_webSocket;
+var g_socketIO;
 
+const g_onlineUsers = (function()
+{
+    function updateFn()
+    {
+        renderOnlinePlayersTable(g_onlineUsers.players);
+    }
+
+    return {
+        players: [],
+        initialize: function(onlineUsers)
+        {
+            this.players = onlineUsers;
+        },
+        sort: function()
+        {
+            this.players = this.players.sort(function(player_1, player_2)
+            {
+                return player_1.playerName.localeCompare(player_2.playerName);
+            });
+        },
+        add: function(player)
+        {
+            var entry = this.players.find(function(entry)
+            {
+                return entry.playerName === player.playerName;
+            });
+
+            if(!entry)
+            {
+                this.players.push(player);
+            }
+            else
+            {
+                entry.status = player.status;
+            }
+
+            this.sort();
+            updateFn();
+        },
+        remove: function(playerName)
+        {
+            this.players = this.players.filter(function(player)
+            {
+                return player.playerName != playerName;
+            });
+            updateFn();
+        }
+    };
+
+})();
 
 function verifyAndSubmit(form)
 {
@@ -34,21 +88,72 @@ function submitForm(form)
     request.send("username=" + username + "&password=" + password + "&verify=true");
 }
 
+function declareVictory()
+{
+    send(Message(Constants.DeclareVictory));
+}
+
 
 /**  Get the username */
 function getUsername()
 {
-    var usernameElement = document.getElementById("username");
+    return document.cookie.split(COOKIE_DELIMITER).reduce(function(username, cookie)
+    {
+        if(!username)
+        {
+            var cookieEntry = cookie.trim().split(COOKIE_KEY_VALUE_SEPARATOR);
 
-    return usernameElement.getAttribute("data-username");
+            if(cookieEntry[0] === Constants.UserInformation)
+            {
+                username = cookieEntry[1].split(USER_INFORMATION_COOKIE_SEPARATOR)[0];
+            }
+        }
+        return username;
+    }, null);
+}
+
+function playAlertTone()
+{
+    if($("#sound").prop("checked"))
+    {
+        new Audio("/other/alertTone.mp3").play();
+    }
 }
 
 function pickUpCard(card)
 {
-    var event = {type: Constants.CardPickUp, value: card.getAttribute(Constants.CardSource)};
+    var message = Message(Constants.CardPickUp);
+    message.value.cardSource =  card.getAttribute(Constants.CardSource);
 
-    send(event);
+    send(message);
+}
 
+// TODO Fix this. At the moment, this is just a mock
+function getGameType()
+{
+    if(location.href.indexOf("singlePlayer") != -1)
+    {
+        return Constants.SinglePlayer;
+    } else
+    {
+        return Constants.GameTypeNone;
+    }
+}
+
+function Message(type, value)
+{
+    value = value || {};
+
+    return {
+        type: type,
+        cookies: document.cookie,
+        value: value
+    };
+}
+
+function removeCookie(key)
+{
+    document.cookie = key + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 }
 
 function showDeckCard(card)
@@ -72,7 +177,7 @@ function performAction(message)
     {
         g_actionMap = new Map();
 
-        g_actionMap.set(Constants.LoggedInUser, addToOnlineUserTable);
+        g_actionMap.set(Constants.LoggedInUser, userLoggedIn);
 
         g_actionMap.set(Constants.DeckCardPickUp, showDeckCard);
 
@@ -85,6 +190,12 @@ function performAction(message)
         g_actionMap.set(Constants.ActiveUser, function(value)
         {
             highlightActivePlayer(value);
+
+            if(getUsername() == value)
+            {
+                playAlertTone();
+                showInfo("It is your turn NOW.");
+            }
         });
 
         g_actionMap.set(Constants.WaitForTurn, function(value)
@@ -92,16 +203,64 @@ function performAction(message)
             showError("It is not your turn.");
         });
 
+        g_actionMap.set(Constants.OpponentLose, defeatedPlayer);
+
+        g_actionMap.set(Constants.RemoveGameIdCookie, function()
+        {
+            removeCookie(Constants.GameId);
+        });
+
         g_actionMap.set(Constants.DrawnCardPickUp, function (value)
         {
             console.log(value)
         });
 
+        g_actionMap.set(Constants.OpponentCardPickup, function(value)
+        {
+            showInfo(value.player + " picked up a card from " + value.source);
+        });
+
+        g_actionMap.set(Constants.RedirectToHomePage, gotoHomePage);
+
+        g_actionMap.set(Constants.FalseVictoryDeclaration, falseVictory);
+
+        g_actionMap.set(Constants.FalseVictoryAnnouncement, opponentFalseVictoryAnnouncement);
+
         g_actionMap.set(Constants.VictoryAnnouncement, showWinningCards);
+
+        g_actionMap.set(Constants.Victory, victoryDialog);
+
+        g_actionMap.set(Constants.ChatMessage, receivedMessage);
+
+        g_actionMap.set(Constants.UserLoggedOut, userLoggedOut);
+
+        g_actionMap.set(Constants.GameInvitation, gameInvitation);
+
+        g_actionMap.set(Constants.OpponentWin, function(playerName)
+        {
+            removeUserFromOnlineTableMarkup(playerName);
+            showInfo(playerName + " has WON.");
+        });
+
+        g_actionMap.set(Constants.AbandonedPlayer, function(playerName)
+        {
+            removeUserFromOnlineTableMarkup(playerName);
+            showWarning(playerName + " has abandoned the game.");
+        });
+
+        g_actionMap.set(Constants.OnlineUsers, function(values)
+        {
+            g_onlineUsers.initialize(values.onlineUsers);
+        });
+
+        g_actionMap.set(Constants.AcceptInvitation, acceptedInvitation);
+
+        g_actionMap.set(Constants.StartGame, startGame);
 
         g_actionMap.set(Constants.Information, function (value)
         {
-            console.log(value)
+            console.log(value);
+            showInfo(value);
         });
     }
 
@@ -109,77 +268,227 @@ function performAction(message)
     action(message.value);
 }
 
-function showWinningCards(value) {
-    var header = value.winner + " is announcing victory";
-
-    var modalHeader = document.querySelector("#winningCards .modal-header");
-    modalHeader.innerHTML = header;
-
-    var modalBody = document.querySelector("#winningCards .modal-body");
-    modalBody.innerHTML = value.markup;
-
-    $('#winningCards').modal('show');
+function loggedInGamer(values)
+{
 }
+
+function gotoHomePage()
+{
+    window.location = "/game/home";
+}
+
+function startGame(values)
+{
+    document.cookie = [Constants.GameId, values.gameId].join("=");
+    window.location = "/game/multiPlayer";
+}
+
+function acceptedInvitation(values)
+{
+    $("div.auto_update div[data-player-name='" + values.username + "']").append($("<span></span>").text(values.response));
+    showInfo(values + " has accepted the invitation.");
+    console.log(values);
+    //$("div.auto_update [data-player-name]")
+}
+
+function gameInvitation(values)
+{
+    $("#gameInvitationTitle").text(values.initiator + " has invited you to a game.");
+
+    $("#gameSummary").empty().append(values.players.reduce(function(output, player)
+    {
+        return output.append($("<div data-player-name='" + player +"' class='gamePlayer'></div>").text(player));
+
+    }, $("<div id='gamePlayers' class='auto_update'></div>"))).attr("data-game-id", values.gameId);
+
+    $("#gamePlayers div[data-player-name='" + values.initiator + "']").append($("<span id='gameInitiator'></span>").text("Game Initiator"));
+
+    $("#gameInvitation").modal("show");
+}
+
+function userLoggedOut(loggedOutUser)
+{
+    g_onlineUsers.remove(loggedOutUser);
+}
+
+function defeatedPlayer(username)
+{
+    $("table #" + username).addClass("defeatedPlayer");
+}
+
+function removeUserFromOnlineTableMarkup(username)
+{
+    console.log("Removing " + username);
+    $("table #" + username).parent().remove();
+}
+
+function receivedMessage(message)
+{
+    var sender = message.sender;
+    var messageContents = message.message;
+
+    pushToChatConsole($("<span class='message'></span>").append($("<span class='sender'></span>").text(sender)).
+    append($("<span class='seperator'></span>").text(" : ")).
+    append($("<span class='messageContents'></span>").text(messageContents)));
+
+   // pushToChatConsole(sender + " : " + messageContents);
+}
+
+function victoryDialog(value)
+{
+    $("#winnerMessage .outcomeCards").html(getWinningSets(value.cardSets));
+    $('#winner').modal('show');
+
+    // showAnnouncement(getAnnouncementDialogTemplate()({
+    //     id: "winner",
+    //     header: "<span id='winnerHeader'>WINNER</span>",
+    //     body: $("<div id='winnerMessage'></div>").append($("<div class='textMessage'></div>").html("Congratulations you WON the game."))
+    //                             .append(getWinningSets(value.cardSets)).prop("outerHTML"),
+    //     footer: ""
+    // }), "#winner");
+
+    // $("#winningCards .modal-header").html($("<span id='winnerHeader'>WINNER</span>"));
+    // $("#winningCards .modal-body").append($("<div id='winnerMessage'></div>").html("Congratulations you WON the game.")).append(getWinningSets(value.cardSets));
+    // $('#winningCards').modal('show');
+}
+function showWinningCards(value)
+{
+    $("#opponentWinnerMessage .outcomeCards").html(getWinningSets(value.cardSets));
+    $("#opponentWinner").html(value.winner);
+    $('#opponentWin').modal('show');
+    
+    // $("#winningCards .modal-header").html($("<div id='winnerHeader'></div>").html(value.winner + " has WON"));
+    // $("#winningCards .modal-body").append(getWinningSets(value.cardSets));
+    // $('#winningCards').modal('show');
+}
+
+function losingCardsMarkup(cards)
+{
+    return cards.reduce(function(losingCardsMarkup, card)
+    {
+        var cardValue = card.split("_");
+        var playingCard = new Card(cardValue[1], cardValue[0]);
+        var cardMarkup = new Image();
+        cardMarkup.src = playingCard.getPicture();
+        cardMarkup.className = "playingCard";
+
+        losingCardsMarkup.appendChild(cardMarkup);
+
+        return losingCardsMarkup;
+
+    }, (function(){
+
+        var losingCards = document.createElement("div");
+        losingCards.id = "losingCards";
+
+        return losingCards;
+
+    })());
+}
+
+function falseVictory(cards)
+{
+    $("#loserMessage .outcomeCards").html(losingCardsMarkup(cards));
+    $('#loser').modal('show');
+}
+
+function opponentFalseVictoryAnnouncement(value)
+{
+    $("#opponentLoserMessage .outcomeCards").html(losingCardsMarkup(value.cards));
+    $("#opponentLoser").html(value.player);
+    $('#opponentLose').modal('show');
+}
+
+function getWinningSets(cardSets)
+{
+    return cardSets.reduce(function(markup, cardSet)
+    {
+        var setNumber = cardSets.indexOf(cardSet) + 1;
+        var setCardsId = "setCards_" + setNumber;
+
+        var setMarkup = cardSet.reduce(function(cardSetMarkup, card)
+        {
+            var playingCard = new Card(card.suit, card.value);
+            var cardMarkup = new Image();
+            cardMarkup.src = playingCard.getPicture();
+            cardMarkup.className = "playingCard";
+
+            cardSetMarkup.querySelector("#" + setCardsId).appendChild(cardMarkup);
+            //cardSetMarkup.appendChild(cardMarkup);
+
+            return cardSetMarkup;
+        }, (function()
+        {
+            var cardSetMarkup = document.createElement("div");
+            cardSetMarkup.className = "cardSet";
+            cardSetMarkup.id = "cardSet_" + setNumber;
+
+            var setLabel = document.createElement("span");
+            setLabel.className = "setLabel";
+            setLabel.innerHTML = "Set " + setNumber;
+
+            cardSetMarkup.appendChild(setLabel);
+
+            var cards = document.createElement("span");
+            cards.id = setCardsId;
+            cards.className = "setCards";
+
+            cardSetMarkup.appendChild(cards);
+
+            return cardSetMarkup;
+        })());
+
+        markup.appendChild(setMarkup);
+
+        return markup;
+    }, (function()
+    {
+        var winningCardsMarkup = document.createElement("div");
+        winningCardsMarkup.id = "winningCards";
+
+        return winningCardsMarkup;
+    })());
+}
+
 
 function highlightActivePlayer(playerId)
 {
-    var players = document.querySelectorAll("#onlinePlayers td");
-
-    for(var i = 0; i < players.length; i++)
-    {
-        var player = players[i];
-
-        player.removeAttribute("data-active-player");
-    }
-
-    var activePlayer = document.querySelector("#onlinePlayers #" + playerId);
-    activePlayer.setAttribute("data-active-player", "true");
+    $("#onlinePlayers td").removeAttr("data-active-player");
+    $("#onlinePlayers #" + playerId.replace(" ", "")).attr("data-active-player", "true");
 }
+
 /** Add a user to the "online user table" */
-function addToOnlineUserTable(loggedInUser)
+function userLoggedIn(loggedInUser)
 {
-    $("#players").append($("<tr></tr>").html($("<td></td>").html(loggedInUser)));
-    showInfo(loggedInUser + " logged in.");
+    //$("#players").append($("<tr></tr>").html($("<td id='"+ loggedInUser+"' class='player'></td>").html(loggedInUser)));
+    showInfo(loggedInUser.playerName + " logged in.");
+    g_onlineUsers.add(loggedInUser);
 }
 
 /** Send a message to the web socket server */
 function send(message)
 {
-    if (!g_webSocket)
-    {
-        initWebSocket(getUsername(), message);
-    }
-    else
-    {
-        g_webSocket.send(JSON.stringify(message));
-    }
+    g_socketIO.emit("message", JSON.stringify(message));
 }
 
 /** Initialize the web socket */
-function initWebSocket(username, message)
+function initWebSocket(type)
 {
-    g_webSocket = new WebSocket("ws://localhost:8080");
+    type = type || Constants.HomeLogin;
 
-    g_webSocket.onopen = function ()
+    g_socketIO = io.connect("http://" + location.hostname + (Constants.SERVER_PORT == 80) ? "" : ":" + Constants.SERVER_PORT);
+
+    g_socketIO.on("connect", function()
     {
         console.log("Success");
-        send({type: Constants.Login, value: username});
+        send(Message(type));
+    });
 
-        if (message)
-        {
-            send(message);
-        }
-    };
-
-    g_webSocket.onmessage = function (jsonMessage)
+    g_socketIO.on("message", function(jsonMessage)
     {
-        performAction(JSON.parse(jsonMessage.data));
-    };
-}
+        performAction(JSON.parse(jsonMessage));
+    });
 
-
-function declareVictory() {
-    send({type: Constants.DeclareVictory, value: document.getElementById('playerHand').innerHTML});
 }
 
 function createCard(value)
@@ -189,7 +498,13 @@ function createCard(value)
     return new Card(values[1], values[0]);
 }
 
-function getCurrentUser() {
+function getCurrentUser()
+{
+    if(getGameType() === Constants.SinglePlayer)
+    {
+        return getUsername();
+    }
+
     return document.querySelector("[data-active-player]").id;
 }
 
@@ -199,19 +514,23 @@ function isDeckCardVisible() {
     return visibleDeckCard.length == 1;
 }
 
-function dropFunction(event, ui)
+function dropFunction(event)
 {
     $(this).css({opacity: 1});
 
     var currentCardValue = $(this).attr("data-card-value");
-
-    send({type: Constants.CardDrop, value: createCard(currentCardValue)});
 
     var sourceCard = event.toElement;
     var cardValue = $(sourceCard).attr("data-card-value");
 
     changeCardValue(this, cardValue);
     $(sourceCard).remove();
+
+    var message = Message(Constants.CardDrop);
+    message.value[Constants.OtherCard] = createCard(cardValue);
+    message.value[Constants.NewDrawnCard] = createCard(currentCardValue);
+
+    send(message);
 }
 
 function overFunction(event, ui)
@@ -252,7 +571,9 @@ function createDrawnCard(card)
                 var sourceCardValue = $("#deckCard").attr("data-card-value");
                 $(this).remove();
                 $("#deckCard").remove();
-                send({type: Constants.CardDrop, value: createCard(sourceCardValue)});
+                var message = Message(Constants.CardDrop);
+                message.value[Constants.NewDrawnCard] = createCard(sourceCardValue);
+                send(message);
             },
             over: overFunction,
             out: outFunction,
@@ -394,6 +715,19 @@ function validateAndSubmit(form)
     {
         showError("Please complete the form.");
     }
+}
+
+function sendChatMessage(message)
+{
+    send(Message(Constants.ChatMessage, message));
+    //send({type: Constants.ChatMessage, value: message});
+}
+
+function pushToChatConsole(value)
+{
+    $("#chatConsole").append(value).scrollTop($("#chatConsole").prop("scrollHeight"));
+    //$("#chatConsole").append($("<div class='chatConsoleEntry'></div>").text(value)).
+    //    scrollTop($("#chatConsole").prop("scrollHeight"));
 }
 
 function addEventListenersToCards(cards)

@@ -8,13 +8,23 @@ var Card = function (suit, number) {
 
     this.getPicture = function () {
         return "/images/deck/" + this.getValue() + ".png";
+    };
+
+    this.equals = function(card)
+    {
+      return card.suit.toLowerCase() == this.suit.toLowerCase() &&
+          card.number.toLowerCase() == this.number.toLowerCase();
     }
 };
 
-var Constants =
+const Constants =
 {
     Login: "Login",
     LoggedInUser: "LoggedInUser",
+    InGame: "InGame",
+    InHomePage: "InHomePage",
+    LoggedInGamer: "LoggedInGamer",
+    LoggedOutGamer: "LoggedOutGamer",
     Information: "Info",
     DeckCardPickUp: "DeckCardPickUp",
     DrawnCardPickUp: "DrawnCardPickUp",
@@ -26,11 +36,44 @@ var Constants =
     ActiveUser: "ActiveUser",
     VisibleDeckCard: "data-visible-deck-card",
     DeclareVictory: "DeclareVictory",
+    FalseVictoryDeclaration: "FalseVictoryDeclaration",
+    Victory: "Victory",
     VictoryAnnouncement: "VictoryAnnouncement",
     CardSource: "data-card-source",
     WaitForTurn: "WaitForTurn",
+    Action: "action",
+    PlayAgain: "playAgain",
+    FalseVictoryAnnouncement: "FalseVictoryAnnouncement",
+    NewDrawnCard: "NewDrawnCard",
+    OtherCard: "OtherCard",
+    SinglePlayer: "SinglePlayer",
+    MultiPlayer: "MultiPlayer",
+    GameId: "GameId",
+    OnlineUsers: "OnlineUsers",
+    HomeLogin: "HomeLogin",
+    RedirectToHomePage: "RedirectToHomePage",
+    GameInvitation: "GameInvitation",
+    RejectInvitation: "RejectInvitation",
+    AcceptInvitation: "AcceptInvitation",
+    ChatMessage: "ChatMessage",
+    UserInformation: "UserInformation",
+    GameTypeNone: "None",
+    StartGame: "StartGame",
+    OpponentCardPickup: "OpponentCardPickup",
+    UserLoggedOut: "UserLoggedOut",
+    AbandonedPlayer: "AbandonedPlayer",
+    OpponentLose: "OpponentLose",
+    OpponentWin: "OpponentWin",
+    RemoveGameIdCookie: "RemoveGameIdCookie",
+    WON: "WON",
+    LOST: "LOST",
+    SERVER_PORT: 3000
 };
 
-if (typeof module != "undefined") {
-    module.exports = {Constants: Constants, Card: Card};
+if (typeof module != "undefined")
+{
+    module.exports = {
+        Constants: Constants,
+        Card: Card
+    };
 }

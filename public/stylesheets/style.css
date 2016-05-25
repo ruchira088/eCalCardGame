@@ -5,6 +5,11 @@
   margin: auto;
 }
 
+#multiPlayerDialog label
+{
+  color: black;
+}
+
 #startGameBtn
 {
   position: absolute;
@@ -13,11 +18,63 @@
   width: 200px;
 }
 
+#homepage .chatArea
+{
+  position: relative;
+  margin-top: 15%;
+  float: right;
+  display: inline-block;
+}
+
+#game .chatArea
+{
+  position: relative;
+  margin-right: 30%;
+  float: right;
+  display: inline-block;
+}
+
+#chatRoom
+{
+  display: inline-block;
+}
+
+#chatRoom div
+{
+  min-width: 20vw;
+  margin: 10px;
+}
+
+#chatConsole
+{
+  overflow: scroll;
+  height: 30vh;
+  background-color: white;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+#chatUserInput
+{
+  height: 5vh;
+}
+
+#chatUserInput textarea
+{
+  width: 100%;
+  height: 100%;
+}
+
 #players
 {
   font-size: 200%;
   margin-left: auto;
   margin-right: auto;
+}
+
+#login img
+{
+  width: 100%;
 }
 
 #players th
@@ -198,6 +255,11 @@ h1
   margin-bottom: 50px;
 }
 
+#announcementAttachPoint .textMessage
+{
+  margin-bottom: 10px;
+}
+
 #homepage #greeting, #homepage #logout
 {
   margin-top: 40px;
@@ -209,4 +271,43 @@ h1
 {
   float: right;
   font-size: 125%;
+}
+
+button.ui-dialog-titlebar-close
+{
+  background-image: url("/bower_components/jquery-ui/themes/smoothness/images/ui-icons_888888_256x240.png");
+  background-position: -96px -128px;
+  border-style: solid;
+  border-color: grey;
+}
+
+.defeatedPlayer
+{
+  text-decoration: line-through;
+}
+
+.message
+{
+  display: block;
+}
+
+#chatUserInput button
+{
+  margin-top: 10px;
+}
+
+#chatConsoleHeading
+{
+  text-align: center;
+  display: block;
+  font-weight: bold;
+  font-size: large;
+  text-decoration: underline;
+  margin-bottom: 10px;
+}
+
+.message .sender
+{
+  font-weight: bold;
+  color: #5B93DE;
 }

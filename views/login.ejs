@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <meta name="google-site-verification" content="LJpSYPAJW8QiUTM8CNC4BUgQkWnJVHCrv_izNPtTfJk" />
+  <meta name="description" content="This is a fun card game to play during leisure times. You can play as a single player, or you can invite your friends and play a multi player game."/>
+  <title>eCalGame Login Page</title>
   <% include templates/header.ejs %>
   <% include templates/notifications.ejs %>
   <script>
@@ -20,6 +22,86 @@
   </script>
 </head>
 <body>
+<script>
+
+  window.fbAsyncInit = function()
+  {
+    FB.init({
+      appId      : '703097333159801',
+      cookie     : true,  // enable cookies to allow the server to access
+                          // the session
+      xfbml      : true,  // parse social plugins on this page
+      version    : 'v2.5' // use version 2.5
+    });
+  };
+
+  // Load the SDK asynchronously
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+
+  function loginViaFacebook()
+  {
+    var isConnected = function(response)
+    {
+      return response.status == "connected";
+    };
+
+    var sendAccessToken = function(response)
+    {
+      var accessToken = response.authResponse.accessToken;
+      console.log(accessToken);
+
+      $.post("/game/home", {token: accessToken}, function(data)
+      {
+        if(data == "success");
+        {
+          window.location.href = "/game/home";
+        }
+      });
+    };
+
+    FB.getLoginStatus(function(response)
+    {
+      if(isConnected(response))
+      {
+        sendAccessToken(response);
+      }
+      else
+      {
+        FB.login(function(loginResponse)
+        {
+          if(isConnected(loginResponse))
+          {
+            sendAccessToken(loginResponse);
+          }
+          else
+          {
+            console.log("Please log in");
+          }
+        }, {scope: 'public_profile, email'});
+      }
+    });
+  }
+
+  $(document).ready(function()
+  {
+    $("#facebookLogin").click(loginViaFacebook).hover(function()
+    {
+      $(this).css("cursor", "pointer");
+    });
+  });
+
+</script>
+
+
+<div id="status">
+</div>
+
 <div id="login">
   <h1>
     Login
@@ -38,6 +120,7 @@
       <input onclick="submitUserCredentials()" type="button" class="form-control submitBtn" value="Login">
     </div>
   </form>
+  <img id="facebookLogin" src="/images/facebook-login.png">
   <a href="/new_user">Sign Up</a>
 </div>
 <img id="leaves" src="/images/leaves.png">

@@ -1,4 +1,10 @@
 .idea/
+<<<<<<< HEAD
+.vscode/
+node_modules/
+bower_components/
+npm-debug.log
+=======
 
 # Logs
 logs
@@ -27,3 +33,4 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+>>>>>>> master

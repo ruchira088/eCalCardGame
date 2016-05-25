@@ -85,6 +85,22 @@ var Player = function (name) {
 
     this.cards = [];
 
+    this.removeCard = function(removalCard)
+    {
+      this.cards = this.cards.filter(function(card)
+      {
+          return !removalCard.equals(card);
+      });
+    };
+
+    this.showCards = function()
+    {
+        return this.cards.map(function(card)
+        {
+            return card.getValue();
+        });
+    };
+
     this.fetchCard = function (deck) {
         this.cards.push(deck.pickUpCard());
     }
@@ -126,6 +142,11 @@ var CardGame = function (playerNames) {
     {
         players.set(player.name, player);
     };
+    
+    this.removePlayer = function remove(playerName) 
+    {
+        players.delete(playerName);  
+    };
 
     this.getDeck = function () {
         return deck;
@@ -159,9 +180,13 @@ var CardGame = function (playerNames) {
         return players;
     };
 
-    for (var i = 0; i < playerNames.length; i++) {
-        this.addPlayer(new Player(playerNames[i]));
-    }
+    playerNames.forEach(function(name)
+    {
+        this.addPlayer(new Player(name));
+    }.bind(this));
+    //for (var i = 0; i < playerNames.length; i++) {
+    //    this.addPlayer(new Player(playerNames[i]));
+    //}
 };
 
 //var List = function()
