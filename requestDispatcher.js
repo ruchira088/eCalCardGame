@@ -2,7 +2,7 @@ var http = require("http");
 var https = require("https");
 
 var HOSTNAME = "localhost";
-var PORT = 8081;
+var PORT = 8080;
 var DB_COLLECTION_PATH = "/Rest_DB/database/CardGame/users";
 
 function checkUsernameAvailability(user, callback)
