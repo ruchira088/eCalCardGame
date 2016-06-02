@@ -20,6 +20,8 @@
     "jquery-ui": "~1.11.4",
     "bootstrap": "~3.3.6",
     "toastr": "~2.1.2",
-    "handlebars": "^4.0.5"
+    "handlebars": "^4.0.5",
+    "react": "^15.1.0",
+    "babel": "*"
   }
 }

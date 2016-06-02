@@ -36,7 +36,9 @@
         <button id="multiPlayerBtn" type="button" class="btn btn-info btn-lg" data-toggle="modal">
             MultiPlayer
         </button>
-
+            <a id="messagesBtn" class="btn btn-success btn-lg" href="/messages">
+                Messages
+            </a>
         <div id="modalDialogContainer">
         </div>
     </div>
@@ -155,8 +157,15 @@
                 })
             });
 
+//            $("#messagesBtn").on("click", function()
+//            {
+//
+//            });
 
-            $("#modalDialogContainer").append(multiPlayerDialog).append(selectedPlayersDialog).append(gameInvitation);
+            $("#modalDialogContainer")
+                    .append(multiPlayerDialog)
+                    .append(selectedPlayersDialog)
+                    .append(gameInvitation);
 
             $("#invitePlayersBtn").on("click", function()
             {

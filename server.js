@@ -11,10 +11,11 @@ const server = http.createServer(app);
 
 module.exports = server;
 
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var new_user = require('./routes/new_user').router;
-var game = require('./routes/game').router;
+var routes = getRoute("index");
+var users = getRoute("users");
+var new_user = getRoute("new_user").router;
+var game = getRoute("game").router;
+const messages = getRoute("messages");
 
 app.locals.Constants = require('./public/javascripts/shared').Constants;
 
@@ -33,9 +34,15 @@ app.use('/bower_components', express.static(path.join(__dirname, 'bower_componen
 app.use('/onlineUsers', users);
 app.use('/new_user', new_user);
 app.use('/game', game);
-
+app.use('/messages', messages);
 
 app.use('/*', routes);
+
+
+function getRoute(name)
+{
+  return require(path.join(__dirname, "routes", name));
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

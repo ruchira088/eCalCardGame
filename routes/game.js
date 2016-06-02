@@ -793,13 +793,6 @@ function createRandomString(strength)
 }
 
 module.exports = {
-    router: function(app)
-    {},
-    playerTokens: playerTokens
-};
-
-
-module.exports = {
     router: router,
     playerTokens: playerTokens
 };
