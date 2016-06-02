@@ -2,8 +2,8 @@ const React = require("react")
 const ReactDOM = require("react-dom")
 const $ = require("jquery")
 
-const messageFormID = "messageForm"
-const inboxID = "inbox"
+const messageFormID = "messageFormLink"
+const inboxID = "inboxLink"
 
 const MessagesPage = React.createClass(
 {
@@ -63,7 +63,7 @@ const MessageForm = React.createClass(
 			data: JSON.stringify({
 				receiver: this.state.receiver,
 				subject: this.state.subject,
-				message: this.state.message
+				messageBody: this.state.message
 			})
 
 		})
@@ -157,7 +157,7 @@ const Inbox = React.createClass(
 		const messages = this.state.messages.map((message, index) => 
 		{
 			return (
-				<MessageSummary sender={message.sender} title={message.title} key={index}/>
+				<MessageSummary sender={message.sender} subject={message.subject} key={index}/>
 			)
 		})
 
@@ -179,7 +179,7 @@ const MessageSummary = React.createClass(
 						{this.props.sender}
 					</div>
 					<div>
-						{this.props.title}
+						{this.props.subject}
 					</div>
 				</div>
 			)

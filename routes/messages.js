@@ -1,4 +1,10 @@
-const router = require("express").Router();
+const router = require("express").Router()
+const rp = require("request-promise")
+
+const MESSAGING_SERVICE = "http://localhost:9000/messages"
+
+// Remove later
+const sampleUser = "sampleUser"
 
 router.get("/", (request, response) =>
 {
@@ -7,20 +13,35 @@ router.get("/", (request, response) =>
 
 router.get("/get", (request, response) =>
 {
+	rp({
+		uri: "http://httpbin.org/get",
+		qs: {cat: "fluffy"}
+	})
+	.then(responseBody => console.log(responseBody))
+
     response.json({
         messages: [
-            {sender: "Cat", title: "Meow"},
-            {sender: "wpsadmin", title: "Hello"}
+            {sender: "Cat", subject: "Meow"},
+            {sender: "wpsadmin", subject: "Hello"}
         ]
     });
 });
 
 router.post("/post", (request, response) => 
 {
-	console.log(JSON.stringify(request.body))
-	response.json(
-		{result: "success"}
-	)
+	const requestBody = request.body
+	requestBody.sender = sampleUser
+
+	rp({
+		method: "POST",
+		uri: MESSAGING_SERVICE,
+		body: requestBody,
+		json: true
+	})
+	.then(responseBody => 
+	{
+		response.json(responseBody)
+	})
 })
 
 module.exports = router;
