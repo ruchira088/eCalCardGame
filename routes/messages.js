@@ -4,7 +4,8 @@ const rp = require("request-promise")
 const MESSAGING_SERVICE = "http://localhost:9000/messages"
 
 // Remove later
-const sampleUser = "sampleUser"
+const dummySender = "dummySender"
+const dummyReceiver = "dummyReceiver"
 
 router.get("/", (request, response) =>
 {
@@ -14,23 +15,20 @@ router.get("/", (request, response) =>
 router.get("/get", (request, response) =>
 {
 	rp({
-		uri: "http://httpbin.org/get",
-		qs: {cat: "fluffy"}
+		uri: MESSAGING_SERVICE,
+		qs: {receiver: dummyReceiver},
+		json: true
 	})
-	.then(responseBody => console.log(responseBody))
-
-    response.json({
-        messages: [
-            {sender: "Cat", subject: "Meow"},
-            {sender: "wpsadmin", subject: "Hello"}
-        ]
-    });
+	.then(responseBody => 
+	{
+		response.json({messages: responseBody})
+	})
 });
 
 router.post("/post", (request, response) => 
 {
 	const requestBody = request.body
-	requestBody.sender = sampleUser
+	requestBody.sender = dummySender
 
 	rp({
 		method: "POST",

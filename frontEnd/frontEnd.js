@@ -82,7 +82,7 @@ const MessageForm = React.createClass(
 		const state = {}
 		state[target.id] = target.value
 
-		this.setState(state);
+		this.setState(state)
 	}
 	,
 	render: function()
@@ -145,11 +145,10 @@ const Inbox = React.createClass(
 		{
 			url: "/messages/get"
 		})
-		.done(data =>
+		.done(data => 
+		{
 			this.setState({messages: data.messages})
-		)
-
-		//this.setState({messages: dummyMessages})
+		})
 	}
 	,
 	render: function()
