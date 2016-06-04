@@ -311,3 +311,23 @@ button.ui-dialog-titlebar-close
   font-weight: bold;
   color: #5B93DE;
 }
+
+/* Messages Page */
+
+#navigator li
+{
+  width: 125px;
+  margin: 10px
+}
+
+#navigator .active
+{
+  background: grey
+}
+
+#messagesHeading
+{
+  color: white
+}
+
+

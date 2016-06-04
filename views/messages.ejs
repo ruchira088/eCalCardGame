@@ -1,16 +1,64 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="/bower_components/jquery/dist/jquery.min.js"></script>
         <script src="/generated/bundle.js"></script>
+        <!-- <script src="/bower_components/jquery/dist/jquery.min.js"></script> -->
         <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <!-- <script src="/bower_components/typeahead.js/dist/typeahead.bundle.js"></script> -->
 
         <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+        <!-- <link rel="stylesheet" type="text/css" href="stylesheets/style.css"> -->
+        <style type="text/css">
+
+            #navigator li
+            {
+              width: 125px;
+              margin: 10px
+            }
+
+            #navigator .active
+            {
+              background: grey
+            }
+
+            #messageForm label
+            {
+                display: block;
+            }
+
+            .twitter-typeahead
+            {
+                width: 100%
+            }
+
+            .tt-menu
+            {
+                    background: white;
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 8px;
+                    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+                    border: 1px solid rgba(0, 0, 0, 0.2);
+
+            }
+
+            .tt-suggestion:hover {
+  cursor: pointer;
+  color: #fff;
+  background-color: #0097cf;
+}
+
+.tt-suggestion.tt-cursor {
+  color: #fff;
+  background-color: #0097cf;
+
+}
+        </style>
         <title>Messages</title>
     </head>
 
     <body class="container">
-        <h2>Messages</h2>
+        <h2 id="messagesHeading">Messages</h2>
         <div id="attachmentPoint"></div>
     </body>
 </html>
